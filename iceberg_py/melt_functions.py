@@ -72,5 +72,50 @@ def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel):
     
     
     return melt, T_sh, T_fp
+
+
+def melt_forcedair(T_air, U_rel, L):
     
-    return
+    T_ice = -4 # ice temperature
+    Li = 3.33e5 # latent heat of fusion in ice J/kg
+    rho_i = 900 # density of ice
+    air_viscosity = 1.46e-5 # kinematic viscosity of air
+    air_diffusivity = 2.16e-5 # thermal diffusivity of air
+    air_conductivity = 0.0249 # thermal condictivity of air
+    cold = T_air < 0 # freezing celsius
+    
+    Pr = air_viscosity / air_diffusivity # Prandtl number
+    Re = np.abs(U_rel) * L / air_viscosity # Reynolds number based on relative air speed
+    Nu = 0.058 * (np.power(Re,0.8)) / (np.power(Pr,0.4))
+    HF = (1/L) * (Nu * air_conductivity * (T_air - T_ice)) # HEAT FLUX
+    
+    melt = HF / (rho_i * Li)
+    melt[cold] = 0
+    
+    return melt
+
+
+def melt_buoyantwater(T_w, S_w, method):
+    
+    Tf = -0.036 - (0.0499 * S_w) - (0.00011128 * np.power(S_w,2)) # freezing pt of seawater due to S changes
+    Tfp = Tf * np.exp(-0.19 * (T_w - Tf)) # freezing point temperature
+    
+    if method == 'bigg':
+        dT = T_w
+        mday = 7.62e-3 * dT + 1.3e-3 * np.power(dT,2) 
+        
+    elif method == 'cis':
+        dT = T_w - Tfp
+        mday = 7.62e-3 * dT + 1.29e-3 * np.power(dT,2)
+        
+    melt = mday / 86400
+    
+    return melt
+
+
+"""
+NEED TO CODE
+keeldepth
+init_iceberg_size
+barker_carea
+"""
