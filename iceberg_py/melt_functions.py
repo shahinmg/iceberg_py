@@ -112,10 +112,71 @@ def melt_buoyantwater(T_w, S_w, method):
     
     return melt
 
+def keeldepth(L, method):
+    
+    L_10 = round(L/10) * 10 # might have issues with this
+    
+    barker_La = L_10 <= 160
+    hotzel_La = L_10 > 160
+    
+    # if nargin==1
+    #     method = 'auto' # idk what this is from
+    
+    if method == 'auto':
+        # not sure about this
+        keel_depth_h = 3.78  * np.power(hotzel_La,0.63) # hotzel
+        keel_depth_b = 2.91 * np.power(barker_La,0.71) # barker
+        
+        return keel_depth_b,keel_depth_h
+        
+    elif method == 'barker':
+        keel_depth = 2.91 * np.power(L_10,0.71)
+        
+        return keel_depth
+    
+    elif method == 'hotzel':
+        keel_depth = 3.78 * np.power(L_10,0.63)
+    
+        return keel_depth
+    
+    elif method == 'constant':
+        keel_depth = 0.7 * L_10
+        
+        return keel_depth
+    
+    elif method == 'mean':
+        
+        keel_arr = np.ones(len(L_10),4)
+
+        keel_arr[barker_La,0] = 2.91 * np.power(barker_La,0.71) # barker # feel like these should just be ind columns?
+        keel_arr[hotzel_La,0] = 3.78 * np.power(hotzel_La,0.63) # hotzel
+        keel_arr[:,1] = 2.91 * np.power(L_10,0.71)
+        keel_arr[:,2] = 3.78 * np.power(L_10,0.63)
+        keel_arr[:,3] = 0.7 * L_10
+        
+        mean = np.mean(keel_arr, axis=1)
+        
+        keel_depth = mean
+        
+        return keel_depth
+
+
+def barker_carea(L, K, dz, LWratio):
+    
+    
+    
+    return
+
+def init_iceberg_size():
+    
+    
+    
+    return
+
 
 """
 NEED TO CODE
-keeldepth
+keeldepth - done
 init_iceberg_size
 barker_carea
 """
