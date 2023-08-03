@@ -161,7 +161,7 @@ def keeldepth(L, method):
         return keel_depth
 
 
-def barker_carea(L, K, dz, LWratio):
+def barker_carea(L, keel_depth, dz, LWratio):
     
     
     
