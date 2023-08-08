@@ -8,7 +8,7 @@ Created on Wed Aug  2 11:00:25 2023
 
 import numpy as np
 import  scipy
-
+import xarray as xr
 
 def melt_wave(windu, sst, sea_ice_conc):
     
@@ -161,8 +161,102 @@ def keeldepth(L, method):
         return keel_depth
 
 
-def barker_carea(L, keel_depth, dz, LWratio):
+def barker_carea(L, keel_depth, dz, LWratio, method='barker'):
+    # %
+    # % calculates underwater cross sectional areas using Barker et al. 2004,
+    # % and converts to length underwater (for 10 m thicknesses, this is just CrossArea/10) and sail area for K<200, 
+    # % for icebergs K>200, assumes tabular shape
+    # %
+    # % [CArea, UWlength, SailA] = barker_carea(L)
+    # %
+    # % L is vector of iceberg lengths, 
+    # % K is keel depth
+    # % (if narg<2), then it calculates keel depths from this using keeldepth.m
+    # % dz = layer thickness to use
+    # % LWratio: optional argument, default is 1.62:1 L:W, or specify
+    # %
+    # % all variables in structure "icebergs"
+    # %   CA is cross sectional area of each 10 m layer underwater
+    # %   uwL is length of this 10 m underwater layer
+    # %   Z is depth of layer
+    # %   uwW calculated from length using length to width ratio of 1.62:1
+    # % 
+    # %   also get volumes and masses
+    # %
+    # % first get keel depth
     
+    if keel_depth == None:
+        keel_depth = keeldepth(L,'barker') # K = keeldepth(L,'mean');
+        dz = 10
+        LWratio = 1.62
+    
+    # NEED TO FIGURE OUT WHAT THESE ARE AND WRITE IT BETTER! THIS IS NOT THAT GOOD
+    if dz == 10: # originally for dz=10 m layers
+        a = [9.51,11.17,12.48,13.6,14.3,13.7,13.5,15.8,14.7,11.8,11.4,10.9,10.5,10.1,9.7,9.3,8.96,8.6,8.3,7.95]
+        a = np.array(a).reshape((len(a),1))
+        
+        b = [25.9,107.5,232,344.6,457,433,520,1112,1125,853,931,1007,1080,1149,1216,1281,1343,1403,1460,1515]
+        b = -1 * (np.array(b).reshape((len(b),1)))
+        
+    elif dz == 5:
+        # I NEED TO UNDERSTAND WHAT THIS IS DOING BETTER BC IT DOES NOT MAKE SENSE
+        a = [9.51,11.17,12.48,13.6,14.3,13.7,13.5,15.8,14.7,11.8,11.4,10.9,10.5,10.1,9.7,9.3,8.96,8.6,8.3,7.95]
+        a = np.array(a).reshape((len(a),1))
+        
+        b = [25.9,107.5,232,344.6,457,433,520,1112,1125,853,931,1007,1080,1149,1216,1281,1343,1403,1460,1515]
+        b = -1 * (np.array(b).reshape((len(b),1)))
+    
+        aa = np.empty(a.T.shape)
+        aa[0] = a[0]
+        bb = np.empty(b.T.shape)
+        bb[0] = b[0]
+        
+        for i in range(len(a)-1):
+            aa[0,i+1] = np.nanmean(a[i:i+2,:])
+            bb[0,i+1] = np.nanmean(b[i:i+2,:])
+    
+        newa = np.empty((40,1)) 
+        newa[:] = np.nan
+        newb = newa.copy()
+        
+        newa[::2] = aa.T
+        newa[1::2] = a
+        
+        newb[::2] = bb.T
+        newb[1::2] = b
+        
+        a = newa/2
+        b = newb/2
+    
+    a_s = 28.194; # for sail area
+    b_s = -1420.2;    
+    
+    # initialize arrays
+    # icebergs.Z = dz:dz:500; icebergs.Z=icebergs.Z';
+    # zlen = length(icebergs.Z);
+    # temp = nan.*ones(zlen,length(L));  # 100 layers of 5-m each, so up to 500 m deep berg
+    # temps = nan.*ones(1,length(L));  # sail area
+    
+    icebergs = xr.DataArray(np.arange(dz,500,dz), dims=("Z"), name="Z")
+    zlen = len(icebergs.Z)
+    # temp = nan.*ones(zlen,length(L))
+    temp = np.nan * np.ones(zlen, len(L))
+    temps = np.nan * np.ones(1, len(L))
+    
+    
+    # K_l200 = keel_depth[keel_depth<200] # might cause an issue?
+    K_l200 = np.where(keel_depth<200) # get indices of keel_depth < 200
+    # if(~isempty(ind))
+    if ~K_l200.size == 0: # check if empty
+        for i in range(len(K_l200)):
+            
+            kz = K_l200[i] # keel depth
+            kza = np.ceil(kz,dz) # layer index for keel depth
+            
+            for nl in range(kza):
+                temp[nl,i] = a[nl] * L[K_l200[i]] + b[nl]
+        temps[K_l200] = a_s * L[K_l200] + b_s
+        temps[L<60] = 0.077
     
     
     return
