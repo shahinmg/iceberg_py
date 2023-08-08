@@ -161,7 +161,7 @@ def keeldepth(L, method):
         return keel_depth
 
 
-def barker_carea(L, keel_depth, dz, LWratio, method='barker'):
+def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     # %
     # % calculates underwater cross sectional areas using Barker et al. 2004,
     # % and converts to length underwater (for 10 m thicknesses, this is just CrossArea/10) and sail area for K<200, 
@@ -237,15 +237,16 @@ def barker_carea(L, keel_depth, dz, LWratio, method='barker'):
     # temp = nan.*ones(zlen,length(L));  # 100 layers of 5-m each, so up to 500 m deep berg
     # temps = nan.*ones(1,length(L));  # sail area
     
-    icebergs = xr.DataArray(np.arange(dz,500,dz), dims=("Z"), name="Z")
-    zlen = len(icebergs.Z)
+    z_coord = np.arange(dz,500,dz)
+    depth_layers = xr.DataArray(data=np.arange(dz,500,dz), dims=("Z"), coords = {"Z":z_coord}, name="Z")
+    zlen = len(depth_layers.Z)
     # temp = nan.*ones(zlen,length(L))
     temp = np.nan * np.ones(zlen, len(L))
     temps = np.nan * np.ones(1, len(L))
     
     
     # K_l200 = keel_depth[keel_depth<200] # might cause an issue?
-    K_l200 = np.where(keel_depth<200) # get indices of keel_depth < 200
+    K_l200 = np.where(keel_depth<=200) # get indices of keel_depth < 200
     # if(~isempty(ind))
     if ~K_l200.size == 0: # check if empty
         for i in range(len(K_l200)):
@@ -259,11 +260,81 @@ def barker_carea(L, keel_depth, dz, LWratio, method='barker'):
         temps[L<60] = 0.077
     
     
-    return
+    # then do icebergs D>200 for tabular
+    K_g200 = np.where(keel_depth>200)
+    if ~K_g200.size == 0:
+        for i in range(len(K_g200)):
+            
+            kz = K_g200[i] # keel depth
+            kza = np.ceil(kz,dz) # layer index for keel depth
+            
+            for nl in range(kza):
+                temp[nl,i] = a[nl] * L[K_g200[i]] + b[nl]
+        
+        temps[K_g200] = 0.1211 * L[K_g200] * keel_depth[K_g200]
+        
+    
+    cross_area = xr.DataArray(data=temp, dims=("Z"), coords = {"Z":z_coord}, name="cross_area")
+    # icebergs.uwL = temp./dz; 
+    length_layers = xr.DataArray(data=temp/dz, dims=("Z"), coords = {"Z":z_coord}, name="uwL")
+    
+    # now use L/W ratio of 1.62:1 (from Dowdeswell et al.) to get widths I wonder if I can just get widths from Sid's data??
+    widths = length_layers.uwL / LWratio
+    width_layers = xr.DataArray(data = widths, dims=("Z"), coords = {"Z":z_coord}, name="uwW")
+    
+    dznew = dz * np.ones(np.size(length_layers.uwL));
+    
+    vol = dznew * length_layers.uwL * width_layers
+    volume = xr.DataArray(data=vol, dims=("Z"),coords = {"Z":z_coord}, name="uwV")
+    
+    # I am ASSUMING everything is the same size. NEED TO CHECK when I get things running
+    icebergs = xr.Dataset(data_vars={'Z':depth_layers,
+                                     'cross_area':cross_area,
+                                     'uwL':length_layers,
+                                     'uwW':width_layers,
+                                     'uwV':volume}
+                          )
 
-def init_iceberg_size():
     
+    return icebergs
+
+def init_iceberg_size(L, dz=10):
+    # % initialize iceberg size and shapes, based on length
+    # % 
+    # % given L, outputs all other iceberg parameters
+    # % dz : specify layer thickness desired, default is 10m
+    # %
+    # % Updated to make stable using Wagner et al. threshold, Sept 2017
+    # % either load in lengths L or specify here
+    # %L = [100:50:1000]';
     
+    keel_depth = keeldepth(L, 'barker')
+    
+    # now get underwater shape, based on Barker for K<200, tabular for K>200, and 
+    ice = barker_carea(L, keel_depth, dz) # LWratio = 1.62
+    
+    # from underwater volume, calculate above water volume
+    rho_i = 917 #kg/m3
+    rat_i = rho_i/1024 # ratio of ice density to water density
+    
+    total_volume = (1/rat_i) * np.nansum(ice.uwV,axis=0) #double check axis need rows, ~87% of ice underwater
+    sail_volume = total_volume - np.nansum(ice.uwV,axis=0) # sail volume is above water volune
+    
+    waterline_width = L/1.62
+    freeB = sail_volume / (L * waterline_width) # Freeboard height
+    length = L.copy()
+    thickness = keel_depth + freeB # total thickness
+    deepest_keel = np.ceil(keel_depth/dz) # index of deepest iceberg layer, % ice.keeli = round(K./dz)
+    # dz = dzS
+    dzk = -1*((deepest_keel - 1) * dz - keel_depth) #
+    
+    # check if stable
+    stability_thresh = 0.92 # from Wagner et al. 2017, if W/H < 0.92 then unstable
+    stable_check = waterline_width / thickness
+    
+    if stable_check < stability_thresh:
+        
+        pass
     
     return
 
@@ -272,6 +343,6 @@ def init_iceberg_size():
 NEED TO CODE
 keeldepth - done
 init_iceberg_size
-barker_carea
+barker_carea - done
 iceberg_melt
 """
