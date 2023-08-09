@@ -298,7 +298,7 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     
     return icebergs
 
-def init_iceberg_size(L, dz=10, stability_method='keel'):
+def init_iceberg_size(L, dz=10, stability_method='equal'):
     # % initialize iceberg size and shapes, based on length
     # % 
     # % given L, outputs all other iceberg parameters
@@ -324,7 +324,7 @@ def init_iceberg_size(L, dz=10, stability_method='keel'):
     
     waterline_width = L/1.62
     freeB = sail_volume / (L * waterline_width) # Freeboard height
-    length = L.copy()
+    # length = L.copy()
     thickness = keel_depth + freeB # total thickness
     deepest_keel = np.ceil(keel_depth/dz) # index of deepest iceberg layer, % ice.keeli = round(K./dz)
     # dz = dzS
@@ -335,19 +335,85 @@ def init_iceberg_size(L, dz=10, stability_method='keel'):
     stable_check = waterline_width / thickness
     
     if stable_check < stability_thresh:
-        if stability_method == 'kee;l':
+        # Not sure when to use either? MATLAB code has if(0) and if(1) for 'keel' and 'equal'
+        if stability_method == 'keel':
+            # change keeldepth to be shallower
             print(f'Fixing keel depth for L = {L} m size class')
             
             diff_thick_width = thickness - waterline_width # Get stable thickness
             keel_new = keel_depth - rat_i * diff_thick_width # change by percent of difference
             
+            ice = barker_carea(L,keel_new,dz)
+            total_volume = (1/rat_i) * np.nansum(ice.uwV,axis=0) #double check axis need rows, ~87% of ice underwater
+            sail_volume = total_volume - np.nansum(ice.uwV,axis=0) # sail volume is above water volune
+            waterline_width = L/1.62
+            freeB = sail_volume / (L * waterline_width) # Freeboard height
+            # length = L.copy()
+            thickness = keel_depth + freeB # total thickness
+            deepest_keel = np.ceil(keel_depth/dz) # index of deepest iceberg layer, % ice.keeli = round(K./dz)
+            # dz = dzS
+            dzk = -1*((deepest_keel - 1) * dz - keel_depth) #
+            stability = waterline_width/thickness
             
+            # make xarray dataset for output
+            # iceberg = xr.Dataset(data_vars={'totalV':total_volume,
+            #                                 'sailV':sail_volume,
+            #                                 'W': waterline_width,
+            #                                 'freeB': freeB,
+            #                                 'L':L,
+            #                                 'keel': keel_new,
+            #                                 'keeli': deepest_keel,
+            #                                 'dz': dz,
+            #                                 'dzk': dzk
+                
+            #     }
+            #     )
+            ice['totalV'] = total_volume
+            ice['sailV'] = sail_volume
+            ice['W'] = waterline_width
+            ice['freeB'] = freeB
+            ice['L'] = L
+            ice['keel'] = keel_new
+            ice['keeli'] = deepest_keel
+            ice['dz'] = dz
+            ice['dzk'] = dzk
             
-            
+            return ice
         
-        pass
-    
-    return
+        elif stability_method == 'equal':
+            # change W to equal L, recalculate volumes
+            print(f'Fixing width to equal L, for L = {L} m size class')
+            # use L:W ratio of to make stable, set so L:W makes EC=EC_thresh
+            
+            width_temporary = stability_thresh * thickness
+            lw_ratio = np.floor((100*L)/width_temporary) # round down to hundredth place
+            ice = barker_carea(L, keel_depth, dz, LWratio=lw_ratio)
+            
+            total_volume = (1/rat_i) * np.nansum(ice.uwV,axis=0) #double check axis need rows, ~87% of ice underwater
+            sail_volume = total_volume - np.nansum(ice.uwV,axis=0) # sail volume is above water volune
+            waterline_width = L/1.62
+            freeB = sail_volume / (L * waterline_width) # Freeboard height
+            # length = L.copy()
+            thickness = keel_depth + freeB # total thickness
+            deepest_keel = np.ceil(keel_depth/dz) # index of deepest iceberg layer, % ice.keeli = round(K./dz)
+            # dz = dzS
+            dzk = -1*((deepest_keel - 1) * dz - keel_depth) #
+            stability = waterline_width/thickness
+            
+            ice['totalV'] = total_volume
+            ice['sailV'] = sail_volume
+            ice['W'] = waterline_width
+            ice['freeB'] = freeB
+            ice['L'] = L
+            ice['keel'] = keel_new
+            ice['keeli'] = deepest_keel
+            ice['dz'] = dz
+            ice['dzk'] = dzk
+            
+            if stability < stability_thresh:
+                raise Exception("Still unstable, check W/H ratios")
+            
+            return ice
 
 
 """
