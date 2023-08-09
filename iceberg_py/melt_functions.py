@@ -9,7 +9,7 @@ Created on Wed Aug  2 11:00:25 2023
 import numpy as np
 import  scipy
 import xarray as xr
-
+from math import ceil
 def melt_wave(windu, sst, sea_ice_conc):
     
     sea_state = 1.5 * np.sqrt(windu) + 0.1 * windu
@@ -114,7 +114,7 @@ def melt_buoyantwater(T_w, S_w, method):
 
 def keeldepth(L, method):
     
-    L_10 = round(L/10) * 10 # might have issues with this
+    L_10 = np.round(L/10) * 10 # might have issues with this
     
     barker_La = L_10 <= 160
     hotzel_La = L_10 > 160
@@ -185,6 +185,8 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     # %
     # % first get keel depth
     
+    keel_depth = np.array([keel_depth])
+    L = np.array([L])
     if keel_depth == None:
         keel_depth = keeldepth(L,'barker') # K = keeldepth(L,'mean');
         dz = 10
@@ -237,36 +239,43 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     # temp = nan.*ones(zlen,length(L));  # 100 layers of 5-m each, so up to 500 m deep berg
     # temps = nan.*ones(1,length(L));  # sail area
     
-    z_coord = np.arange(dz,500,dz)
-    depth_layers = xr.DataArray(data=np.arange(dz,500,dz), dims=("Z"), coords = {"Z":z_coord}, name="Z")
+    z_coord_flat = np.arange(dz,500+dz,dz)
+    z_coord = z_coord_flat.reshape(len(z_coord_flat),1)
+    depth_layers = xr.DataArray(data=z_coord, coords = {"Z":z_coord_flat},  dims=["Z","X"], name="Z")
     zlen = len(depth_layers.Z)
     # temp = nan.*ones(zlen,length(L))
-    temp = np.nan * np.ones(zlen, len(L))
-    temps = np.nan * np.ones(1, len(L))
+    # need to make L an array
+    
+    temp = np.nan * np.ones((zlen, len(L)))
+    temps = np.nan * np.ones((1, len(L)))
     
     
     # K_l200 = keel_depth[keel_depth<200] # might cause an issue?
-    K_l200 = np.where(keel_depth<=200) # get indices of keel_depth < 200
+    K_l200 = np.where(keel_depth<=200)[0] # get indices of keel_depth < 200
     # if(~isempty(ind))
-    if ~K_l200.size == 0: # check if empty
+    if K_l200.size != 0: # check if empty
         for i in range(len(K_l200)):
             
-            kz = K_l200[i] # keel depth
-            kza = np.ceil(kz,dz) # layer index for keel depth
+            kz = keel_depth[i] # keel depth
+            # dz_np = np.array([dz],dtype=np.float64)
+            kza = np.ceil(kz/dz) # layer index for keel depth
+            # kza = ceil(kz,dz) # layer index for keel depth
             
-            for nl in range(kza):
+            for nl in range(int(kza)):
                 temp[nl,i] = a[nl] * L[K_l200[i]] + b[nl]
+                
         temps[K_l200] = a_s * L[K_l200] + b_s
-        temps[L<60] = 0.077
+        temps[L<65] = 0.077 * np.power(L[L<65],2) # fix for L<65, barker 2004
     
     
     # then do icebergs D>200 for tabular
-    K_g200 = np.where(keel_depth>200)
-    if ~K_g200.size == 0:
+    K_g200 = np.where(keel_depth>200)[0]
+    if K_g200.size != 0:
+        print('here')
         for i in range(len(K_g200)):
             
             kz = K_g200[i] # keel depth
-            kza = np.ceil(kz,dz) # layer index for keel depth
+            kza = np.ceil(kz/dz) # layer index for keel depth
             
             for nl in range(kza):
                 temp[nl,i] = a[nl] * L[K_g200[i]] + b[nl]
@@ -274,25 +283,26 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
         temps[K_g200] = 0.1211 * L[K_g200] * keel_depth[K_g200]
         
     
-    cross_area = xr.DataArray(data=temp, dims=("Z"), coords = {"Z":z_coord}, name="cross_area")
+    cross_area = xr.DataArray(data=temp, coords = {"Z":z_coord_flat}, dims=["Z","X"], name="cross_area")
     # icebergs.uwL = temp./dz; 
-    length_layers = xr.DataArray(data=temp/dz, dims=("Z"), coords = {"Z":z_coord}, name="uwL")
+    length_layers = xr.DataArray(data=temp/dz, coords = {"Z":z_coord_flat},  dims=["Z","X"], name="uwL")
     
     # now use L/W ratio of 1.62:1 (from Dowdeswell et al.) to get widths I wonder if I can just get widths from Sid's data??
-    widths = length_layers.uwL / LWratio
-    width_layers = xr.DataArray(data = widths, dims=("Z"), coords = {"Z":z_coord}, name="uwW")
+    widths = length_layers.values / LWratio # This is wrong!
+    width_layers = xr.DataArray(data = widths, coords = {"Z":z_coord_flat},  dims=["Z","X"], name="uwW")
     
-    dznew = dz * np.ones(np.size(length_layers.uwL));
+    dznew = dz * np.ones(length_layers.values.shape);
     
-    vol = dznew * length_layers.uwL * width_layers
-    volume = xr.DataArray(data=vol, dims=("Z"),coords = {"Z":z_coord}, name="uwV")
+    vol = dznew * length_layers.values * width_layers.values # VOL IS WRONG
+    volume = xr.DataArray(data=vol, coords = {"Z":z_coord_flat},  dims=["Z","X"], name="uwV")
     
     # I am ASSUMING everything is the same size. NEED TO CHECK when I get things running
-    icebergs = xr.Dataset(data_vars={'Z':depth_layers,
+    icebergs = xr.Dataset(data_vars={'depth':depth_layers,
                                      'cross_area':cross_area,
                                      'uwL':length_layers,
                                      'uwW':width_layers,
-                                     'uwV':volume}
+                                     'uwV':volume},
+                          coords = {'Z': z_coord_flat}
                           )
 
     
@@ -332,7 +342,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
     
     # check if stable
     stability_thresh = 0.92 # from Wagner et al. 2017, if W/H < 0.92 then unstable
-    stable_check = waterline_width / thickness
+    stable_check = waterline_width / thickness[0]
     
     if stable_check < stability_thresh:
         # Not sure when to use either? MATLAB code has if(0) and if(1) for 'keel' and 'equal'
@@ -346,7 +356,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
             ice = barker_carea(L,keel_new,dz)
             total_volume = (1/rat_i) * np.nansum(ice.uwV,axis=0) #double check axis need rows, ~87% of ice underwater
             sail_volume = total_volume - np.nansum(ice.uwV,axis=0) # sail volume is above water volune
-            waterline_width = L/1.62
+            waterline_width = L/1.62 # something with this is wrong
             freeB = sail_volume / (L * waterline_width) # Freeboard height
             # length = L.copy()
             thickness = keel_depth + freeB # total thickness
@@ -355,28 +365,16 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
             dzk = -1*((deepest_keel - 1) * dz - keel_depth) #
             stability = waterline_width/thickness
             
-            # make xarray dataset for output
-            # iceberg = xr.Dataset(data_vars={'totalV':total_volume,
-            #                                 'sailV':sail_volume,
-            #                                 'W': waterline_width,
-            #                                 'freeB': freeB,
-            #                                 'L':L,
-            #                                 'keel': keel_new,
-            #                                 'keeli': deepest_keel,
-            #                                 'dz': dz,
-            #                                 'dzk': dzk
-                
-            #     }
-            #     )
-            ice['totalV'] = total_volume
-            ice['sailV'] = sail_volume
-            ice['W'] = waterline_width
-            ice['freeB'] = freeB
-            ice['L'] = L
-            ice['keel'] = keel_new
-            ice['keeli'] = deepest_keel
-            ice['dz'] = dz
-            ice['dzk'] = dzk
+            ice['totalV'] = xr.DataArray(data=total_volume[0],name='totalV')
+            ice['sailV'] = xr.DataArray(data=sail_volume[0], name='sailV')
+            ice['W'] = xr.DataArray(waterline_width, name='W')
+            ice['freeB'] = xr.DataArray(freeB[0],name='freeB')
+            ice['L'] = xr.DataArray(np.float64(L),name='L')
+            ice['keel'] = xr.DataArray(data=keel_depth, name='keel')
+            ice['TH'] = xr.DataArray(data=thickness[0], name='thickness')
+            ice['keeli'] = xr.DataArray(data=deepest_keel, name='keeli')
+            ice['dz'] = xr.DataArray(data=dz, name='dz')
+            ice['dzk'] = xr.DataArray(data=dzk, name='dzk')
             
             return ice
         
@@ -385,32 +383,37 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
             print(f'Fixing width to equal L, for L = {L} m size class')
             # use L:W ratio of to make stable, set so L:W makes EC=EC_thresh
             
-            width_temporary = stability_thresh * thickness
-            lw_ratio = np.floor((100*L)/width_temporary) # round down to hundredth place
+            width_temporary = stability_thresh * thickness[0]
+            lw_ratio = np.floor((100*L)/width_temporary)/100 # round down to hundredth place
+            
             ice = barker_carea(L, keel_depth, dz, LWratio=lw_ratio)
             
             total_volume = (1/rat_i) * np.nansum(ice.uwV,axis=0) #double check axis need rows, ~87% of ice underwater
             sail_volume = total_volume - np.nansum(ice.uwV,axis=0) # sail volume is above water volune
-            waterline_width = L/1.62
+            waterline_width = L / lw_ratio #something with this is wrong
             freeB = sail_volume / (L * waterline_width) # Freeboard height
             # length = L.copy()
             thickness = keel_depth + freeB # total thickness
             deepest_keel = np.ceil(keel_depth/dz) # index of deepest iceberg layer, % ice.keeli = round(K./dz)
             # dz = dzS
             dzk = -1*((deepest_keel - 1) * dz - keel_depth) #
-            stability = waterline_width/thickness
+
             
-            ice['totalV'] = total_volume
-            ice['sailV'] = sail_volume
-            ice['W'] = waterline_width
-            ice['freeB'] = freeB
-            ice['L'] = L
-            ice['keel'] = keel_new
-            ice['keeli'] = deepest_keel
-            ice['dz'] = dz
-            ice['dzk'] = dzk
             
-            if stability < stability_thresh:
+    
+            ice['totalV'] = xr.DataArray(data=total_volume[0],name='totalV')
+            ice['sailV'] = xr.DataArray(data=sail_volume[0], name='sailV')
+            ice['W'] = xr.DataArray(waterline_width, name='W')
+            ice['freeB'] = xr.DataArray(freeB[0],name='freeB')
+            ice['L'] = xr.DataArray(np.float64(L),name='L')
+            ice['keel'] = xr.DataArray(data=keel_depth, name='keel')
+            ice['TH'] = xr.DataArray(data=thickness[0], name='thickness')
+            ice['keeli'] = xr.DataArray(data=deepest_keel, name='keeli')
+            ice['dz'] = xr.DataArray(data=dz, name='dz')
+            ice['dzk'] = xr.DataArray(data=dzk, name='dzk')
+            EC = ice.W/ice.TH
+            
+            if EC < stability_thresh:
                 raise Exception("Still unstable, check W/H ratios")
             
             return ice
