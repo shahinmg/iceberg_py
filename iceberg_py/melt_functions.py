@@ -298,7 +298,7 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     
     return icebergs
 
-def init_iceberg_size(L, dz=10):
+def init_iceberg_size(L, dz=10, stability_method='keel'):
     # % initialize iceberg size and shapes, based on length
     # % 
     # % given L, outputs all other iceberg parameters
@@ -307,11 +307,13 @@ def init_iceberg_size(L, dz=10):
     # % Updated to make stable using Wagner et al. threshold, Sept 2017
     # % either load in lengths L or specify here
     # %L = [100:50:1000]';
+    # stablility method 'keel' or 'equal' 
+    # keel changes keel depth, equal makes width and length equal
     
     keel_depth = keeldepth(L, 'barker')
     
     # now get underwater shape, based on Barker for K<200, tabular for K>200, and 
-    ice = barker_carea(L, keel_depth, dz) # LWratio = 1.62
+    ice = barker_carea(L, keel_depth, dz) # LWratio = 1.62 this gives you uwL, uwW, uwV, uwM, and vector Z down to keel depth
     
     # from underwater volume, calculate above water volume
     rho_i = 917 #kg/m3
@@ -333,6 +335,15 @@ def init_iceberg_size(L, dz=10):
     stable_check = waterline_width / thickness
     
     if stable_check < stability_thresh:
+        if stability_method == 'kee;l':
+            print(f'Fixing keel depth for L = {L} m size class')
+            
+            diff_thick_width = thickness - waterline_width # Get stable thickness
+            keel_new = keel_depth - rat_i * diff_thick_width # change by percent of difference
+            
+            
+            
+            
         
         pass
     
