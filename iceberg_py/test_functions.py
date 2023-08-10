@@ -14,4 +14,10 @@ dz = 5
 
 #Test first L
 
-ice = ice_melt.init_iceberg_size(L[0],dz=dz)
+# ice = ice_melt.init_iceberg_size(L[0],dz=dz)
+ice_init = []
+for length in L:
+    print(f'processing {length}')
+    ice_init.append(ice_melt.init_iceberg_size(length,dz=dz))
+    print(f'finished with {length}')
+    

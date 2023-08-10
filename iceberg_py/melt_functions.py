@@ -162,28 +162,28 @@ def keeldepth(L, method):
 
 
 def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
-    # %
-    # % calculates underwater cross sectional areas using Barker et al. 2004,
-    # % and converts to length underwater (for 10 m thicknesses, this is just CrossArea/10) and sail area for K<200, 
-    # % for icebergs K>200, assumes tabular shape
-    # %
-    # % [CArea, UWlength, SailA] = barker_carea(L)
-    # %
-    # % L is vector of iceberg lengths, 
-    # % K is keel depth
-    # % (if narg<2), then it calculates keel depths from this using keeldepth.m
-    # % dz = layer thickness to use
-    # % LWratio: optional argument, default is 1.62:1 L:W, or specify
-    # %
-    # % all variables in structure "icebergs"
-    # %   CA is cross sectional area of each 10 m layer underwater
-    # %   uwL is length of this 10 m underwater layer
-    # %   Z is depth of layer
-    # %   uwW calculated from length using length to width ratio of 1.62:1
-    # % 
-    # %   also get volumes and masses
-    # %
-    # % first get keel depth
+    # #
+    # # calculates underwater cross sectional areas using Barker et al. 2004,
+    # # and converts to length underwater (for 10 m thicknesses, this is just CrossArea/10) and sail area for K<200, 
+    # # for icebergs K>200, assumes tabular shape
+    # #
+    # # [CArea, UWlength, SailA] = barker_carea(L)
+    # #
+    # # L is vector of iceberg lengths, 
+    # # K is keel depth
+    # # (if narg<2), then it calculates keel depths from this using keeldepth.m
+    # # dz = layer thickness to use
+    # # LWratio: optional argument, default is 1.62:1 L:W, or specify
+    # #
+    # # all variables in structure "icebergs"
+    # #   CA is cross sectional area of each 10 m layer underwater
+    # #   uwL is length of this 10 m underwater layer
+    # #   Z is depth of layer
+    # #   uwW calculated from length using length to width ratio of 1.62:1
+    # # 
+    # #   also get volumes and masses
+    # #
+    # # first get keel depth
     
     keel_depth = np.array([keel_depth])
     L = np.array([L])
@@ -265,20 +265,22 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
                 temp[nl,i] = a[nl] * L[K_l200[i]] + b[nl]
                 
         temps[K_l200] = a_s * L[K_l200] + b_s
-        temps[L<65] = 0.077 * np.power(L[L<65],2) # fix for L<65, barker 2004
+        
+        if L < 65:
+            temps[L<65] = 0.077 * np.power(L[L<65],2) # fix for L<65, barker 2004
     
     
     # then do icebergs D>200 for tabular
     K_g200 = np.where(keel_depth>200)[0]
     if K_g200.size != 0:
-        print('here')
         for i in range(len(K_g200)):
             
-            kz = K_g200[i] # keel depth
+            kz = keel_depth[i] # keel depth
             kza = np.ceil(kz/dz) # layer index for keel depth
             
-            for nl in range(kza):
-                temp[nl,i] = a[nl] * L[K_g200[i]] + b[nl]
+            for nl in range(int(kza)):
+                # temp[nl,i] = a[nl] * L[K_g200[i]] + b[nl]
+                temp[nl,i] = L[K_g200[i]] * dz
         
         temps[K_g200] = 0.1211 * L[K_g200] * keel_depth[K_g200]
         
@@ -309,14 +311,14 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     return icebergs
 
 def init_iceberg_size(L, dz=10, stability_method='equal'):
-    # % initialize iceberg size and shapes, based on length
-    # % 
-    # % given L, outputs all other iceberg parameters
-    # % dz : specify layer thickness desired, default is 10m
-    # %
-    # % Updated to make stable using Wagner et al. threshold, Sept 2017
-    # % either load in lengths L or specify here
-    # %L = [100:50:1000]';
+    # # initialize iceberg size and shapes, based on length
+    # # 
+    # # given L, outputs all other iceberg parameters
+    # # dz : specify layer thickness desired, default is 10m
+    # #
+    # # Updated to make stable using Wagner et al. threshold, Sept 2017
+    # # either load in lengths L or specify here
+    # #L = [100:50:1000]';
     # stablility method 'keel' or 'equal' 
     # keel changes keel depth, equal makes width and length equal
     
@@ -343,6 +345,21 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
     # check if stable
     stability_thresh = 0.92 # from Wagner et al. 2017, if W/H < 0.92 then unstable
     stable_check = waterline_width / thickness[0]
+    
+    if stable_check > stability_thresh:
+            ice['totalV'] = xr.DataArray(data=total_volume[0],name='totalV')
+            ice['sailV'] = xr.DataArray(data=sail_volume[0], name='sailV')
+            ice['W'] = xr.DataArray(waterline_width, name='W')
+            ice['freeB'] = xr.DataArray(freeB[0],name='freeB')
+            ice['L'] = xr.DataArray(np.float64(L),name='L')
+            ice['keel'] = xr.DataArray(data=keel_depth, name='keel')
+            ice['TH'] = xr.DataArray(data=thickness[0], name='thickness')
+            ice['keeli'] = xr.DataArray(data=deepest_keel, name='keeli')
+            ice['dz'] = xr.DataArray(data=dz, name='dz')
+            ice['dzk'] = xr.DataArray(data=dzk, name='dzk')
+            
+            return ice
+    
     
     if stable_check < stability_thresh:
         # Not sure when to use either? MATLAB code has if(0) and if(1) for 'keel' and 'equal'
@@ -399,8 +416,6 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
             dzk = -1*((deepest_keel - 1) * dz - keel_depth) #
 
             
-            
-    
             ice['totalV'] = xr.DataArray(data=total_volume[0],name='totalV')
             ice['sailV'] = xr.DataArray(data=sail_volume[0], name='sailV')
             ice['W'] = xr.DataArray(waterline_width, name='W')
@@ -417,6 +432,92 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
                 raise Exception("Still unstable, check W/H ratios")
             
             return ice
+        
+
+
+
+
+def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,
+                 do_melt={'wave':True, 'turbw':True, 
+                          'turba':True, 'freea':True, 'freew':True
+                          }):
+
+    # script to initialize icebergs and melt them through time, also roll them
+    # if they fail weeks/mellor stability criterion
+    #
+    # INPUT: 
+    # L = iceberg length(s) in m
+    # dz = layer thickness (default is 10)
+    # timespan = length to run code, in seconds
+    # ctddata = T,S vs. depth in structure, called temp,salt,depth (nz vs. # of casts)
+    # IceConc: magnitude of ice conc., 0-1; make empty [] if don't want wave melt on, if size>1 then time series
+    # WindSpd: wind speed, either time series or magnitude
+    # Tair: air temp; either time series or magnitude
+    # SWflx: solar insolation or shortwave flux in W m-2, either time series or magnitude
+    # Urelative: relative water velocity, either constant or structure of tadcp,vadcp,zadcp
+    # 
+    # do_melt = 0/1 to indicate which processes to include
+    # [wave  turbw  turba   freea   freew]; if empty then turn all on
+    #
+    # OUTPUT:
+    # out = structure containing all output--see cell below
+    #
+    # NOTE: some parts of code not working yet: rolling and slab breakoff
+    
+    # Idk the best way to go about creating the melt outputs. might put into list, dict, or pd dataframe?
+    
+    diagnostics = False
+    
+    ice_init = []
+    for length in L:
+        ice_init.append(init_iceberg_size(length,dz=dz))
+    
+    
+    nz = len(ice_init[0].Z)
+    dz = ice_init[0].dz # ice_init
+    dt = 86400
+    t = np.arange(dt,timespan+dt,dt)
+    nt = len(t)
+    
+    if len(IceConc) == 1:
+        sice =  IceConc * np.ones(t.shape) # if want varying need to make vector in time
+    else:
+        sice = IceConc
+    
+    if len(WindSpd) == 1:
+        WindV =  WindSpd * np.ones(t.shape) # could make varying to include katabatics
+    else:
+        WindV = WindV
+    
+    if len(Tair) == 1:
+        Ta =  Tair * np.ones(t.shape) # if want varying need to make vector in time
+    else:
+        Ta = Tair
+    
+    if len(SWflx) == 1:
+        Srad =  SWflx * np.ones(t.shape) # if want varying need to make vector in time
+    else:
+        Srad = SWflx
+    
+    
+    m, n = np.shape(ctddata.temp) # need to see what format CTD data will be provided in
+    
+    if n>1:
+        temp = np.nanmean(ctddata.temp,axis=1) #double check axis
+        salt = np.nanmean(ctddata.salt,axis=1)
+    elif n == 1:
+        temp = ctddata.temp
+        salt = ctddata.salt
+    
+    ctdz = ctddata.salt
+    
+    # WATER VELOCITY, should be horizontal currents and vertical velocities (plumes)
+    
+    return
+
+
+
+
 
 
 """
