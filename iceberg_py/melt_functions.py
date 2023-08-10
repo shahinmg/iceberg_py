@@ -288,12 +288,12 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     length_layers = xr.DataArray(data=temp/dz, coords = {"Z":z_coord_flat},  dims=["Z","X"], name="uwL")
     
     # now use L/W ratio of 1.62:1 (from Dowdeswell et al.) to get widths I wonder if I can just get widths from Sid's data??
-    widths = length_layers.values / LWratio # This is wrong!
+    widths = length_layers.values / LWratio 
     width_layers = xr.DataArray(data = widths, coords = {"Z":z_coord_flat},  dims=["Z","X"], name="uwW")
     
     dznew = dz * np.ones(length_layers.values.shape);
     
-    vol = dznew * length_layers.values * width_layers.values # VOL IS WRONG
+    vol = dznew * length_layers.values * width_layers.values
     volume = xr.DataArray(data=vol, coords = {"Z":z_coord_flat},  dims=["Z","X"], name="uwV")
     
     # I am ASSUMING everything is the same size. NEED TO CHECK when I get things running
@@ -356,7 +356,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
             ice = barker_carea(L,keel_new,dz)
             total_volume = (1/rat_i) * np.nansum(ice.uwV,axis=0) #double check axis need rows, ~87% of ice underwater
             sail_volume = total_volume - np.nansum(ice.uwV,axis=0) # sail volume is above water volune
-            waterline_width = L/1.62 # something with this is wrong
+            waterline_width = L/1.62 
             freeB = sail_volume / (L * waterline_width) # Freeboard height
             # length = L.copy()
             thickness = keel_depth + freeB # total thickness
@@ -390,7 +390,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
             
             total_volume = (1/rat_i) * np.nansum(ice.uwV,axis=0) #double check axis need rows, ~87% of ice underwater
             sail_volume = total_volume - np.nansum(ice.uwV,axis=0) # sail volume is above water volune
-            waterline_width = L / lw_ratio #something with this is wrong
+            waterline_width = L / lw_ratio 
             freeB = sail_volume / (L * waterline_width) # Freeboard height
             # length = L.copy()
             thickness = keel_depth + freeB # total thickness
@@ -422,7 +422,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
 """
 NEED TO CODE
 keeldepth - done
-init_iceberg_size
+init_iceberg_size - done
 barker_carea - done
 iceberg_melt
 """
