@@ -9,7 +9,7 @@ Created on Wed Aug  2 11:00:25 2023
 import numpy as np
 import numpy.matlib
 import scipy
-from scipy.interpolate import interp2d
+from scipy.interpolate import interp1d, interp2d
 import xarray as xr
 from math import ceil
 
@@ -541,7 +541,133 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     vmadcp = vmadcp + Urelative.wvel * np.ones(np.shape(vmadcp)) # (right now wvel constant in time/space)
     
     # interpolate to Urel
-    Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt
+    Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt #interp2d will be depreciated
+    
+    # set up melt volume arrays
+    Mwave = np.zeros((ni,nt)) # melt volume for waves, affects just top layer
+    mw = Mwave.copy() # need to find out what this is
+    ma = Mwave.copy() # need to find out what this is
+    ms = Mwave.copy() # need to find out what this is
+    wave_height = np.zeros((ni,nt))
+    
+    Mturbw = np.zeros(nz,ni,nt) # forced convection underwater, acts on side and base
+    Mturba = np.zeros(ni,nt) # forced convection in air, acts on sides and top
+    Mfreea = np.zeros(ni,nt) # melting in air, reduces thickness only
+    Mfreew = np.zeros(nz,ni,nt) # buoyant convection, only on sides
+    
+    mtw = Mturbw.copy()
+    mb = Mturbw.copy()
+    
+    # set up time dependent iceberg arrays
+    VOL = np.nan * np.zeros(ni,nt) # total iceberg volume
+    LEN = np.nan * np.zeros(ni,nt) # iceberg length
+    WIDTH = np.nan * np.zeros(ni,nt) # iceberg width
+    THICK = np.nan * np.zeros(ni,nt) # iceberg thickness
+    FREEB = np.nan * np.zeros(ni,nt) # iceberg freeboard
+    KEEL = np.nan * np.zeros(ni,nt) # iceberg keel
+    SAILVOL = np.nan * np.zeros(ni,nt) # iceberg above water volume
+    UWVOL = np.nan * np.zeros(nz,ni,nt) # underwater volume, depth dependent
+    UWL = np.nan * np.zeros(nz,ni,nt) # underwater length, depth dependent
+    UWW = np.nan * np.zeros(nz,ni,nt) # underwater width, depth dependent
+    
+    # put in first values
+    for i,iceberg in enumerate(ice_init):
+        VOL[i,0] = iceberg.totalV
+        LEN[i,0] = iceberg.L
+        WIDTH[i,0] = iceberg.W
+        THICK[i,0] = iceberg.TH
+        FREEB[i,0] = iceberg.freeB
+        KEEL[i,0] = iceberg.keel
+        SAILVOL[i,0] = iceberg.sailV
+        UWVOL[:,i,0] = iceberg.uwV
+        UWL[:,i,0] = iceberg.uwL
+        UWW[:,i,0] = iceberg.uwW
+    
+    # Start melting
+    
+    for i,iceberg in enumerate(ice_init):
+        # get iceberg
+        for j in range(2,nt+1): # iterate over time
+            # start calculating melt, get melt rates for each process included, then update at end
+            keeli = np.ceil(iceberg.keel/dz)
+            
+            if do_melt['wave']:
+                
+                # SST = np.nanmean(interp1d(ctdz, temp))
+                # SST = nanmean(interp1(ctdz,temp,0:5)); %0-10 m temp
+                SST_func = interp1d(ctdz, temp) # 0-10 m temp
+                SST = SST_func # Need to test this
+                
+                wave_height[i,j] = 0.010125 * np.power((np.abs(WindV(j))),2) # assume wind >> ocean vel, this estimates wave height
+                WH_depth = np.minimum(iceberg.freeB, 5 * wave_height[i,j])
+                # apply 1/2 mw to L and 1/2 mw to uwL(1,:)
+                mw[i,j] = melt_wave(WindV[j], SST, sice[j]) # m/s though I need to check units of data source
+                mw[i,j] = mw[i,j] * dt
+                
+                top_length = np.nanmean([iceberg.L, iceberg.uwL[0]]) # mean of length and first layer underwater
+                Mwave[i,j] = 1 * (mw[i,j] * WH_depth * top_length) + 1 * (mw[i,j] *WH_depth * top_length) # 1 lengths 1 widths (coming at it obliquely) confused by this
+                
+                # base on wave height estimate, to get right volume taken off but doesn't do L right then! FIX (confused by this -MS)
+                mwabove = WH_depth / iceberg.freeB
+                mwbelow = WH_depth / iceberg.dz
+                
+            else:
+                mw[i,j] = 0
+                mwabove = 0
+                mwbelow = 0
+                    
+            if do_melt['turbw']:
+                # apply melt for each depth level of the iceberg
+                for k in range(keeli):
+                    T_far = interp1d(ctdz,temp) # interp1(ctdz,temp,Z(k));
+                    S_far = interp1d(ctdz,salt) # interp1(ctdz,salt,Z(k));
+                    
+                    melt, T_sh, T_fp = melt_forcedwater(T_far, S_far, iceberg.depth[k],Urel[k,i,j])
+                    mtw[k,i,j] = mtw[k,i,j] * dt
+                    Mturbw[k,i,j] = 2 * (mtw[k,i,j] * dz * iceberg.uwL[k]) + 1 * (mtw[k,i,j] * iceberg.dz * iceberg.uwW[k])
+                    
+                else:
+                    mtw[:nz,i,j] = 0
+            
+            if do_melt['turba']:
+                
+                ma[i,j] = melt_forcedair(Ta[j], WindV[j], iceberg.L)
+                ma[i,j] = ma[i,j] * dt # melt rate in m/s
+                Mturba[i,j] = (2 * (ma[i,j] * iceberg.dz * iceberg.L)  # two lengths
+                 + 1 * (ma[i,j] * iceberg.dz * iceberg.W)  # once width, lee side does not count
+                    + 0.5 * (ma[i,j] * iceberg.L * iceberg.W)) # half of surface
+                
+            else:
+                ma[i,j] = 0
+                
+            if do_melt['freea']:
+                ms[i,j] = melt_solar(Srad[j])
+                ms[i,j] = ms[i,j] * dt # melt rate m/s
+                Mfreea[i,j] = (ms[i,j] * iceberg.W * iceberg.L) # only melts top surface area
+                
+            else:
+                ms[i,j] = 0
+                
+            if do_melt['freew']:
+                
+                for k in range(keeli):
+                    
+                    T_far = interp1d(ctdz, temp) #interp1(ctdz,temp,Z(k))
+                    S_far = interp1d(ctdz, salt) #interp1(ctdz,salt,Z(k));
+                    mb[k,i,j] = melt_buoyantwater(T_far, S_far, 'cis') # bigg method, then S doesn't matter
+                    mb[k,i,j] = mb[k,i,j] * dt
+                    Mfreew[k,i,j] = 2 * ((mb[k,i,j]) * iceberg.dz * iceberg.uwL[k] # 2 lenghts
+                                         + 2 *(mb[keeli,i,j]) * iceberg.dz * iceberg.uwW(k))
+                # dz_keel
+                dz_keel = -1 * ((keeli-1)) * iceberg.dz - iceberg.keel # not sure about keeli -1
+                Mfreew[keeli,i,j] = 2 * ((mb(keeli,i,j)) * dz_keel * iceberg.uwL[keeli]
+                                         + 2 * (mb[keeli,i,j]) * dz_keel * iceberg.uwW[keeli])
+                
+            else:
+                mb[:nz,i,j] = 0
+                
+                
+                
     
     return
 
