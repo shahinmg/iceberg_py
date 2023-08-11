@@ -7,9 +7,13 @@ Created on Wed Aug  2 11:00:25 2023
 """
 
 import numpy as np
-import  scipy
+import numpy.matlib
+import scipy
+from scipy.interpolate import interp2d
 import xarray as xr
 from math import ceil
+
+
 def melt_wave(windu, sst, sea_ice_conc):
     
     sea_state = 1.5 * np.sqrt(windu) + 0.1 * windu
@@ -437,7 +441,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
 
 
 
-def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=True
+def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=True,
                  do_melt={'wave':True, 'turbw':True, 
                           'turba':True, 'freea':True, 'freew':True
                           }):
@@ -478,6 +482,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     dt = 86400
     t = np.arange(dt,timespan+dt,dt)
     nt = len(t)
+    ni = len(L)
     
     if len(IceConc) == 1:
         sice =  IceConc * np.ones(t.shape) # if want varying need to make vector in time
@@ -518,12 +523,26 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     
     else: # load ADCP pulse events here, based on SF ADCP data
         Urel = np.nan * np.ones(nz,ni,nt)
-        kki = pass #dsearchn(Urelative.zadcp(:),ceil(ice_init(1).K));
+        kki = 1 #dsearchn(Urelative.zadcp(:),ceil(ice_init(1).K));
         
         if IceConc == 1:
             # if sea ice conc = 100%, assume we're talking about melange and don't take out mean horizontal flow
-            vmadcp = Urelative.vadc
-    # stopped on line 110
+            vmadcp = Urelative.vadcp
+                
+        else:
+            # for drifting icebergs, take out mean horizontal flow
+            vmadcp = Urelative.vadcp - np.matlib.repmat(np.nanmean(Urelative.vadcp[0:kki,:]),len(Urelative.zadcp),1)
+    
+    # make zero below keel depth to be certain
+    vmadcp[kki+1:-1,:] = 0
+    vmadcp = np.abs(vmadcp) # speed
+    # add in vertical velocity if any (wvel in Urelative structure)
+    
+    vmadcp = vmadcp + Urelative.wvel * np.ones(np.shape(vmadcp)) # (right now wvel constant in time/space)
+    
+    # interpolate to Urel
+    Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt
+    
     return
 
 
