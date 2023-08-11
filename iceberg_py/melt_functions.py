@@ -437,7 +437,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
 
 
 
-def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,
+def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=True
                  do_melt={'wave':True, 'turbw':True, 
                           'turba':True, 'freea':True, 'freew':True
                           }):
@@ -513,6 +513,17 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,
     
     # WATER VELOCITY, should be horizontal currents and vertical velocities (plumes)
     
+    if do_constantUrel:
+        Urel = Urelative * np.ones(nz,ni,nt)
+    
+    else: # load ADCP pulse events here, based on SF ADCP data
+        Urel = np.nan * np.ones(nz,ni,nt)
+        kki = pass #dsearchn(Urelative.zadcp(:),ceil(ice_init(1).K));
+        
+        if IceConc == 1:
+            # if sea ice conc = 100%, assume we're talking about melange and don't take out mean horizontal flow
+            vmadcp = Urelative.vadc
+    # stopped on line 110
     return
 
 
