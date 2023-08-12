@@ -442,6 +442,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
 
 
 def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=True,
+                 do_roll = True, do_slab = True,
                  do_melt={'wave':True, 'turbw':True, 
                           'turba':True, 'freea':True, 'freew':True
                           }):
@@ -483,6 +484,8 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     t = np.arange(dt,timespan+dt,dt)
     nt = len(t)
     ni = len(L)
+    
+    
     
     if len(IceConc) == 1:
         sice =  IceConc * np.ones(t.shape) # if want varying need to make vector in time
@@ -680,6 +683,89 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
             
             for k in range(0,keeli+1):
                 iceberg.uwL[k] = iceberg.uwL[k] - mult * mtw[i,j,k] - mult * mb[k,i,j]
+    
+    ## FIX ?? - idk what to fix. this is an original comment in the code - ms
+    iceberg.uwL = iceberg.uwL / 1.62 # update widths
+    iceberg.W = L/1.62
+    
+    rho_i = 917
+    ratio_i = rho_i/1024 # ratio of ice density to water density 
+    
+    keel_index_new = np.ceil(iceberg.keel/iceberg.dz)
+    
+    if keel_index_new < keeli:
+        print(f'Removing keel layer at timestep {j}')
+        iceberg.uwL[keeli] = np.nan
+        iceberg.uwW[keeli] = np.nan
+        iceberg.uwV[keeli] = np.nan
+        keeli = keel_index_new
+        
+    
+    #update values
+    iceberg.uwV[:keeli] = iceberg.dz * iceberg.uwL[1:keeli] * iceberg.uwW[1:keeli]
+    iceberg.dzk[i,j] = -1 * ((keeli-1) * iceberg.dz - iceberg.keel)
+    iceberg.uwV[keeli] = iceberg.dzk[i,j] * iceberg.uwL[keeli] * iceberg.uwW[keeli]
+    iceberg.sailV = iceberg.freeB * iceberg.L * iceberg.W
+    iceberg.totalV = np.nansum(iceberg.uwV) + iceberg.sailV
+    iceberg.sailV = (1 - ratio_i) * iceberg.totalV
+    iceberg.freeB = iceberg.sailV / (iceberg.L * iceberg.W)
+    iceberg.keel = iceberg.TH - iceberg.freeB
+    
+    # check stability, roll, and update 
+    if do_roll:
+        width_stability = 0.7
+        l_thick_ratio = iceberg.L / iceberg.TH
+        
+        if l_thick_ratio < width_stability:
+            print('iceberg rolling')
+            
+            iceberg.TH = iceberg.L 
+            iceberg.L = np.sqrt(iceberg.totalV / (iceberg.TH / 1.62))
+            iceberg.W = iceberg.L / 1.62
+            iceberg.freeB = (1 - ratio_i) * iceberg.TH
+            iceberg.totalV = (1 / ratio_i) * iceberg.sailV
+            iceberg.keel = iceberg.TH - iceberg.freeB
+            iceberg.keeli = np.ceil(iceberg.keel/iceberg.dz)
+            iceberg.uwL[iceberg.keeli+1:] = np.nan
+            iceberg.uwW[iceberg.keeli+1:] = np.nan
+            iceberg.uwV = iceberg.dz * iceberg.uwL * iceberg.uwW
+            
+    
+    # output time dependent parameters
+    VOL[i,j] = iceberg.totalV
+    LEN[i,j] = iceberg.L
+    WIDTH[i,j] = iceberg.W
+    THICK[i,j] = iceberg.TH
+    FREEB[i,j] = iceberg.freeB
+    KEEL[i,j] = iceberg.keel
+    SAILVOL[i,j] = iceberg.sailV
+    UWVOL[i,j] = iceberg.uwV
+    UWL[:,i,j] = iceberg.uwL
+    UWW[:,i,j] = iceberg.uwW
+
+    vol_diff = np.round(np.diff(VOL[i,j-1:j]))
+    if diagnostics:
+        print(f'dt = {j}\nKeel depth = {iceberg.keel.values:.2f}\nLength = {iceberg.L.values:.2f}\n'+\
+              f'Sail Volume = {iceberg.sailV.values:8.0f} Free Board = {iceberg.freeB.values:.2f}\n'+\
+                  f'Volume Difference = {vol_diff:8.0f} DZf = {iceberg.dzk[i,j]:3.1f}')
+                    
+    
+    # convert meltwater volumes to liquid freshwater. Convert from timestep
+    # units of dt to m3/s
+    rho_i_fw_ratio = rho_i / 1000
+    Mwave = (rho_i_fw_ratio * Mwave) / dt
+    Mfreea = (rho_i_fw_ratio * Mfreea) / dt
+    Mturbw = (rho_i_fw_ratio * Mturbw) / dt
+    Mturba = (rho_i_fw_ratio * Mturba) / dt
+    Mfreew = (rho_i_fw_ratio * Mfreea) / dt
+    
+    Mtotal = np.ones(ni)
+    
+    # sum all the fresh water
+    for i in range(ni+1):
+        Mtotal[i] = (Mwave[i,:] + Mfreea[i,:] + Mturba[i,:] + np.nansum(np.squeeze(Mturbw[:,i,:])) + 
+                                                                        np.nansum(np.squeeze(Mfreea[:,i,:])))
+    
     
     return
 
