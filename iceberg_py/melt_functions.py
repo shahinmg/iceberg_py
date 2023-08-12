@@ -666,8 +666,20 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
             else:
                 mb[:nz,i,j] = 0
                 
-                
-                
+            iceberg.freeB = iceberg.freeB - ms[i,j] - ma[i,j]
+            iceberg.keel = iceberg.keel - mtw[keeli,i,j]
+            iceberg.TH = iceberg.keel + iceberg.freeB
+            
+            # reduce thickness on sides, do one L and update W's accordingly
+            
+            mult = 2 # takes melt off each side of L; original paper had mult = 1
+            
+            iceberg.uwL[0] = iceberg.uwL[0] - mult * mtw[k,i,j] - mult * mb[k,i,j]
+            # putting all mw at L means taking out too much Volume, b/c it is freeB high
+            iceberg.L = iceberg.L - mult * ma[i,j] - mult  * mw[i,j] * (mwabove/1) #/1 idk??
+            
+            for k in range(0,keeli+1):
+                iceberg.uwL[k] = iceberg.uwL[k] - mult * mtw[i,j,k] - mult * mb[k,i,j]
     
     return
 
