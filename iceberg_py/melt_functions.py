@@ -16,6 +16,18 @@ from math import ceil
 
 def melt_wave(windu, sst, sea_ice_conc):
     
+    # % Silva et al eqn for wave erosion term
+    # % Mw = melt_wave(Wind_speed,T_surf, SeaIceConc)
+    # %
+    # % solves for melt rate Mw (in m/s), given
+    # % T_w = surface temp of water
+    # % Wind_u = in m/s (really relative to water speed, but assume Wind >>> water speeds)
+    # % SeaIceC = sea ice concentration in % (0-1)
+    # % 
+    # % this is similar to mitberg wave formulation using the bigg option (after martin and adroft too),
+    # % CIS model uses different formulation
+    
+    
     sea_state = 1.5 * np.sqrt(windu) + 0.1 * windu
     IceTerm = 1 + np.cos(np.power(sea_ice_conc,3) * np.pi)
     
@@ -27,6 +39,16 @@ def melt_wave(windu, sst, sea_ice_conc):
 
 def melt_solar(solar_rad):
     
+    # % Melt from solar radiation in air, based on Condron's mitberg formulation, 
+    # % would affect thickness above water only, assumes constant albedo for now
+    # % 
+    # % M = melt_solar(Srad)
+    # % 
+    # % solves for melt rate M (in m/sec), given
+    # % Srad: solar radiation flux downward (SW and LW), in W/m^2
+    # % - note assumes iceberg albedo is 0.7
+    # % 
+
     latent_heat = 3.33e5 #J/kg
     rho_i = 917 #kg/m3
     albedo = 0.7
@@ -38,6 +60,21 @@ def melt_solar(solar_rad):
     
 
 def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel):
+    
+    # % Silva et al eqn, using parameters from Holland and Jenkins
+    # % M = melt_forcedwater(T_far,S_far,P_base,U_rel)
+    # %
+    # % solves for melt rate M (in m/sec), given
+    # % T_far = farfield temp
+    # % S_far = farfield S
+    # % P_base = pressure at base
+    # % U_rel = water speed relative to iceberg surface (this could be the ambient velocity
+    # %             reported by Jenkins' plume model, or a horizontal relative velocity moving past iceberg
+    # % I wonder if U_rel could be terminus velocity for melange??
+    
+    # % also reports back Tsh and T_fp which is difference between T_far and local fp (Tsh = T_far - (aS_far + b + cP_base))
+    # %
+    
     
     # constants from Jenkins
     a = -5.73e-2 # Salinity contribution
@@ -766,6 +803,10 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
         Mtotal[i] = (Mwave[i,:] + Mfreea[i,:] + Mturba[i,:] + np.nansum(np.squeeze(Mturbw[:,i,:])) + 
                                                                         np.nansum(np.squeeze(Mfreea[:,i,:])))
     
+    # set up output
+    
+    # coords need to be time step and Z and X?
+    Mwave_da = xr.DataArray(data=Mwave,)
     
     return
 
