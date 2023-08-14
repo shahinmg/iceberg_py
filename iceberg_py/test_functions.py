@@ -42,5 +42,20 @@ adcp = sio.loadmat(adcp_path)
 
 adcp_ds = xr.Dataset({'zadcp': (['adcpX','adcpY'],adcp['zadcp']),
                       'vadcp': (['adcpX','adcpZ'], adcp['vadcp']),
-                      'tadcp': (['adcpY','adcpZ'], adcp['tadcp'])
+                      'tadcp': (['adcpY','adcpZ'], adcp['tadcp']),
+                      'wvel':  (['adcpY'], np.array([0.05]))
     })
+
+Tair = 6.5 # air temp in C
+SWflx = 306 # W/m2 of shortwave flux
+Winds = 2.3 # wind speed in m/s
+IceC = 0.36 # sea ice conc 0 - 1 (0 - 100%)
+ni = len(L)
+timespan = 86400.0 * 30.0 # 1 month
+
+
+for length in L:
+    mberg = ice_melt.iceberg_melt(length, dz, timespan, ctd_ds, IceC, Winds, Tair, SWflx, adcp_ds)
+
+
+

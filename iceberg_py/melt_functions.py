@@ -9,7 +9,7 @@ Created on Wed Aug  2 11:00:25 2023
 import numpy as np
 import numpy.matlib
 import scipy
-from scipy.interpolate import interp1d, interp2d
+from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator, LinearNDInterpolator
 import xarray as xr
 from math import ceil
 
@@ -478,7 +478,7 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
 
 
 
-def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=True,
+def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=False,
                  do_roll = True, do_slab = True,
                  do_melt={'wave':True, 'turbw':True, 
                           'turba':True, 'freea':True, 'freew':True
@@ -509,6 +509,13 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     # Idk the best way to go about creating the melt outputs. might put into list, dict, or pd dataframe?
     
     diagnostics = False
+    
+    # make inputs arrays
+    L = np.array([L])
+    IceConc = np.array([IceConc])
+    WindSpd = np.array([WindSpd])
+    Tair = np.array([Tair])
+    SWflx = np.array([SWflx])
     
     ice_init = []
     for length in L:
@@ -559,10 +566,10 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     # WATER VELOCITY, should be horizontal currents and vertical velocities (plumes)
     
     if do_constantUrel:
-        Urel = Urelative * np.ones(nz,ni,nt)
+        Urel = Urelative * np.ones((nz,ni,nt))
     
     else: # load ADCP pulse events here, based on SF ADCP data
-        Urel = np.nan * np.ones(nz,ni,nt)
+        Urel = np.nan * np.ones((nz,ni,nt))
         kki = 1 #dsearchn(Urelative.zadcp(:),ceil(ice_init(1).K));
         
         if IceConc == 1:
@@ -578,10 +585,13 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     vmadcp = np.abs(vmadcp) # speed
     # add in vertical velocity if any (wvel in Urelative structure)
     
-    vmadcp = vmadcp + Urelative.wvel * np.ones(np.shape(vmadcp)) # (right now wvel constant in time/space)
+    vmadcp = vmadcp + (Urelative.wvel.values[0] * np.ones(np.shape(vmadcp))) # (right now wvel constant in time/space)
     
     # interpolate to Urel
-    Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt #interp2d will be depreciated
+    # Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt #interp2d will be depreciated
+    interp2d_func = interp2d(Urelative.tadcp.values.flatten(), Urelative.zadcp.values.flatten(), vmadcp)
+    Urel[:,0,:] = interp2d_func(np.arange(0,nt),ice_init[0].Z.to_numpy())
+    # interp2d = RegularGridInterpolator((Urelative.tadcp, Urelative.zadcp, vmadcp))
     
     # set up melt volume arrays
     Mwave = np.zeros((ni,nt)) # melt volume for waves, affects just top layer
