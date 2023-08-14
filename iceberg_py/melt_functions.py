@@ -8,8 +8,8 @@ Created on Wed Aug  2 11:00:25 2023
 
 import numpy as np
 import numpy.matlib
-import scipy
-from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator, LinearNDInterpolator
+from scipy.interpolate import interp1d, interp2d
+from scipy.spatial import cKDTree, KDTree
 import xarray as xr
 from math import ceil
 
@@ -131,7 +131,9 @@ def melt_forcedair(T_air, U_rel, L):
     HF = (1/L) * (Nu * air_conductivity * (T_air - T_ice)) # HEAT FLUX
     
     melt = HF / (rho_i * Li)
-    melt[cold] = 0
+    
+    if cold:
+        melt = 0
     
     return melt
 
@@ -561,16 +563,19 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
         temp = ctddata.temp
         salt = ctddata.salt
     
-    ctdz = ctddata.salt
-    
+    ctdz = ctddata.depth
+    ctdz_flat = ctdz.T.to_numpy().flatten()
     # WATER VELOCITY, should be horizontal currents and vertical velocities (plumes)
     
     if do_constantUrel:
         Urel = Urelative * np.ones((nz,ni,nt))
     
-    else: # load ADCP pulse events here, based on SF ADCP data
+    elif do_constantUrel == False: # load ADCP pulse events here, based on SF ADCP data
         Urel = np.nan * np.ones((nz,ni,nt))
-        kki = 1 #dsearchn(Urelative.zadcp(:),ceil(ice_init(1).K));
+        # kki = 1 #dsearchn(Urelative.zadcp(:),ceil(ice_init(1).K));
+        kdt = cKDTree(Urelative.zadcp[:]) # https://stackoverflow.com/questions/66494042/dsearchn-equivalent-in-python
+        pq = np.ceil(ice_init[0].keel)
+        kki = kdt.query(pq)[-1]
         
         if IceConc == 1:
             # if sea ice conc = 100%, assume we're talking about melange and don't take out mean horizontal flow
@@ -578,19 +583,19 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                 
         else:
             # for drifting icebergs, take out mean horizontal flow
-            vmadcp = Urelative.vadcp - np.matlib.repmat(np.nanmean(Urelative.vadcp[0:kki,:]),len(Urelative.zadcp),1)
+            vmadcp = Urelative.vadcp - np.matlib.repmat(np.nanmean(Urelative.vadcp[0:kki+1,:],axis=0),len(Urelative.zadcp),1)
     
     # make zero below keel depth to be certain
-    vmadcp[kki+1:-1,:] = 0
+    vmadcp[kki+1:,:] = 0
     vmadcp = np.abs(vmadcp) # speed
     # add in vertical velocity if any (wvel in Urelative structure)
     
-    vmadcp = vmadcp + (Urelative.wvel.values[0] * np.ones(np.shape(vmadcp))) # (right now wvel constant in time/space)
+    vmadcp = vmadcp + Urelative.wvel.values[0] * np.ones(np.shape(vmadcp)) # (right now wvel constant in time/space)
     
     # interpolate to Urel
     # Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt #interp2d will be depreciated
     interp2d_func = interp2d(Urelative.tadcp.values.flatten(), Urelative.zadcp.values.flatten(), vmadcp)
-    Urel[:,0,:] = interp2d_func(np.arange(0,nt),ice_init[0].Z.to_numpy())
+    Urel[:,0,:] = interp2d_func(np.arange(1,nt+1),ice_init[0].Z.to_numpy())
     # interp2d = RegularGridInterpolator((Urelative.tadcp, Urelative.zadcp, vmadcp))
     
     # set up melt volume arrays
@@ -600,25 +605,26 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     ms = Mwave.copy() # need to find out what this is
     wave_height = np.zeros((ni,nt))
     
-    Mturbw = np.zeros(nz,ni,nt) # forced convection underwater, acts on side and base
-    Mturba = np.zeros(ni,nt) # forced convection in air, acts on sides and top
-    Mfreea = np.zeros(ni,nt) # melting in air, reduces thickness only
-    Mfreew = np.zeros(nz,ni,nt) # buoyant convection, only on sides
+    Mturbw = np.zeros((nz,ni,nt)) # forced convection underwater, acts on side and base
+    Mturba = np.zeros((ni,nt)) # forced convection in air, acts on sides and top
+    Mfreea = np.zeros((ni,nt)) # melting in air, reduces thickness only
+    Mfreew = np.zeros((nz,ni,nt)) # buoyant convection, only on sides
     
     mtw = Mturbw.copy()
     mb = Mturbw.copy()
     
     # set up time dependent iceberg arrays
-    VOL = np.nan * np.zeros(ni,nt) # total iceberg volume
-    LEN = np.nan * np.zeros(ni,nt) # iceberg length
-    WIDTH = np.nan * np.zeros(ni,nt) # iceberg width
-    THICK = np.nan * np.zeros(ni,nt) # iceberg thickness
-    FREEB = np.nan * np.zeros(ni,nt) # iceberg freeboard
-    KEEL = np.nan * np.zeros(ni,nt) # iceberg keel
-    SAILVOL = np.nan * np.zeros(ni,nt) # iceberg above water volume
-    UWVOL = np.nan * np.zeros(nz,ni,nt) # underwater volume, depth dependent
-    UWL = np.nan * np.zeros(nz,ni,nt) # underwater length, depth dependent
-    UWW = np.nan * np.zeros(nz,ni,nt) # underwater width, depth dependent
+    VOL = np.nan * np.zeros((ni,nt)) # total iceberg volume
+    LEN = np.nan * np.zeros((ni,nt)) # iceberg length
+    WIDTH = np.nan * np.zeros((ni,nt)) # iceberg width
+    THICK = np.nan * np.zeros((ni,nt)) # iceberg thickness
+    FREEB = np.nan * np.zeros((ni,nt)) # iceberg freeboard
+    KEEL = np.nan * np.zeros((ni,nt)) # iceberg keel
+    SAILVOL = np.nan * np.zeros((ni,nt)) # iceberg above water volume
+    DZKt = np.nan * np.zeros((ni,nt))
+    UWVOL = np.nan * np.zeros((nz,ni,nt)) # underwater volume, depth dependent
+    UWL = np.nan * np.zeros((nz,ni,nt)) # underwater length, depth dependent
+    UWW = np.nan * np.zeros((nz,ni,nt)) # underwater width, depth dependent
     
     # put in first values
     for i,iceberg in enumerate(ice_init):
@@ -629,32 +635,36 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
         FREEB[i,0] = iceberg.freeB
         KEEL[i,0] = iceberg.keel
         SAILVOL[i,0] = iceberg.sailV
-        UWVOL[:,i,0] = iceberg.uwV
-        UWL[:,i,0] = iceberg.uwL
-        UWW[:,i,0] = iceberg.uwW
+        UWVOL[:,i,0] = iceberg.uwV.to_numpy().flatten()
+        UWL[:,i,0] = iceberg.uwL.to_numpy().flatten()
+        UWW[:,i,0] = iceberg.uwW.to_numpy().flatten()
     
     # Start melting
     
     for i,iceberg in enumerate(ice_init):
         # get iceberg
-        for j in range(2,nt+1): # iterate over time
+        # add DZKt bc idk how else to do this
+        iceberg['dzkt'] = xr.DataArray(data=DZKt, name='DZKt', coords = {"t":t},  dims=["X","t"])
+        iceberg['dzkt'].values[i,0] = iceberg.dzk 
+        for j in range(1,nt): # iterate over time
             # start calculating melt, get melt rates for each process included, then update at end
-            keeli = np.ceil(iceberg.keel/dz)
+            keeli = int(np.ceil(iceberg.keel/dz))
             
             if do_melt['wave']:
                 
                 # SST = np.nanmean(interp1d(ctdz, temp))
                 # SST = nanmean(interp1(ctdz,temp,0:5)); %0-10 m temp
-                SST_func = interp1d(ctdz, temp) # 0-10 m temp
-                SST = SST_func # Need to test this
                 
-                wave_height[i,j] = 0.010125 * np.power((np.abs(WindV(j))),2) # assume wind >> ocean vel, this estimates wave height
+                SST_func = interp1d(ctdz_flat, temp) # 0-10 m temp
+                SST = np.nanmean(SST_func(np.arange(1,6))) # 0 - 10 m temp
+                
+                wave_height[i,j] = 0.010125 * np.power((np.abs(WindV[j])),2) # assume wind >> ocean vel, this estimates wave height
                 WH_depth = np.minimum(iceberg.freeB, 5 * wave_height[i,j])
                 # apply 1/2 mw to L and 1/2 mw to uwL(1,:)
                 mw[i,j] = melt_wave(WindV[j], SST, sice[j]) # m/s though I need to check units of data source
                 mw[i,j] = mw[i,j] * dt
                 
-                top_length = np.nanmean([iceberg.L, iceberg.uwL[0]]) # mean of length and first layer underwater
+                top_length = np.nanmean([float(iceberg.L), iceberg.uwL[0].values[0]]) # mean of length and first layer underwater
                 Mwave[i,j] = 1 * (mw[i,j] * WH_depth * top_length) + 1 * (mw[i,j] *WH_depth * top_length) # 1 lengths 1 widths (coming at it obliquely) confused by this
                 
                 # base on wave height estimate, to get right volume taken off but doesn't do L right then! FIX (confused by this -MS)
@@ -668,11 +678,14 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                     
             if do_melt['turbw']:
                 # apply melt for each depth level of the iceberg
-                for k in range(keeli):
-                    T_far = interp1d(ctdz,temp) # interp1(ctdz,temp,Z(k));
-                    S_far = interp1d(ctdz,salt) # interp1(ctdz,salt,Z(k));
+                for k in range(int(keeli)):
+                    T_far_func = interp1d(ctdz_flat,temp) # interp1(ctdz,temp,Z(k));
+                    T_far = T_far_func(iceberg.Z[k])
                     
-                    melt, T_sh, T_fp = melt_forcedwater(T_far, S_far, iceberg.depth[k],Urel[k,i,j])
+                    S_far_func = interp1d(ctdz_flat,salt) # interp1(ctdz,salt,Z(k));
+                    S_far = S_far_func(iceberg.Z[k])
+                    
+                    mtw[k,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, iceberg.depth[k],Urel[k,i,j])
                     mtw[k,i,j] = mtw[k,i,j] * dt
                     Mturbw[k,i,j] = 2 * (mtw[k,i,j] * dz * iceberg.uwL[k]) + 1 * (mtw[k,i,j] * iceberg.dz * iceberg.uwW[k])
                     
@@ -700,103 +713,108 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                 
             if do_melt['freew']:
                 
-                for k in range(keeli):
+                for k in range(int(keeli)):
                     
-                    T_far = interp1d(ctdz, temp) #interp1(ctdz,temp,Z(k))
-                    S_far = interp1d(ctdz, salt) #interp1(ctdz,salt,Z(k));
-                    mb[k,i,j] = melt_buoyantwater(T_far, S_far, 'cis') # bigg method, then S doesn't matter
-                    mb[k,i,j] = mb[k,i,j] * dt
-                    Mfreew[k,i,j] = 2 * ((mb[k,i,j]) * iceberg.dz * iceberg.uwL[k] # 2 lenghts
-                                         + 2 *(mb[keeli,i,j]) * iceberg.dz * iceberg.uwW(k))
+                   T_far_func = interp1d(ctdz_flat,temp) # interp1(ctdz,temp,Z(k));
+                   T_far = T_far_func(iceberg.Z[k])
+                   
+                   S_far_func = interp1d(ctdz_flat,salt) # interp1(ctdz,salt,Z(k));
+                   S_far = S_far_func(iceberg.Z[k])
+                   
+                   mb[k,i,j] = melt_buoyantwater(T_far, S_far, 'cis') # bigg method, then S doesn't matter
+                   mb[k,i,j] = mb[k,i,j] * dt
+                   Mfreew[k,i,j] = 2 * ((mb[k,i,j]) * iceberg.dz * iceberg.uwL[k][0] # 2 lenghts
+                                         + 2 *(mb[int(keeli),i,j]) * iceberg.dz * iceberg.uwW[k])
                 # dz_keel
                 dz_keel = -1 * ((keeli-1)) * iceberg.dz - iceberg.keel # not sure about keeli -1
-                Mfreew[keeli,i,j] = 2 * ((mb(keeli,i,j)) * dz_keel * iceberg.uwL[keeli]
-                                         + 2 * (mb[keeli,i,j]) * dz_keel * iceberg.uwW[keeli])
+                Mfreew[keeli,i,j] = 2 * ((mb[int(keeli),i,j] * dz_keel * iceberg.uwL[keeli])
+                                         + 2 * (mb[int(keeli),i,j] * dz_keel * iceberg.uwW[int(keeli)]))
                 
             else:
                 mb[:nz,i,j] = 0
                 
-            iceberg.freeB = iceberg.freeB - ms[i,j] - ma[i,j]
-            iceberg.keel = iceberg.keel - mtw[keeli,i,j]
-            iceberg.TH = iceberg.keel + iceberg.freeB
+            iceberg['freeB'] = iceberg.freeB - ms[i,j] - ma[i,j]
+            iceberg['keel'] = iceberg.keel - mtw[int(keeli),i,j]
+            iceberg['TH'] = iceberg.keel + iceberg.freeB
             
             # reduce thickness on sides, do one L and update W's accordingly
             
             mult = 2 # takes melt off each side of L; original paper had mult = 1
             
-            iceberg.uwL[0] = iceberg.uwL[0] - mult * mtw[k,i,j] - mult * mb[k,i,j]
+            iceberg.uwL[0] = iceberg.uwL[0] - mult * mw[i,j] * (mwbelow/1)
             # putting all mw at L means taking out too much Volume, b/c it is freeB high
-            iceberg.L = iceberg.L - mult * ma[i,j] - mult  * mw[i,j] * (mwabove/1) #/1 idk??
+            iceberg['L'] = iceberg.L - mult * ma[i,j] - mult  * mw[i,j] * (mwabove/1) #/1 idk??
             
+            #this really slow
             for k in range(0,keeli+1):
-                iceberg.uwL[k] = iceberg.uwL[k] - mult * mtw[i,j,k] - mult * mb[k,i,j]
+                iceberg.uwL[k] = iceberg.uwL[k] - mult * mtw[k,i,j] - mult * mb[k,i,j]
     
-    ## FIX ?? - idk what to fix. this is an original comment in the code - ms
-    iceberg.uwL = iceberg.uwL / 1.62 # update widths
-    iceberg.W = L/1.62
-    
-    rho_i = 917
-    ratio_i = rho_i/1024 # ratio of ice density to water density 
-    
-    keel_index_new = np.ceil(iceberg.keel/iceberg.dz)
-    
-    if keel_index_new < keeli:
-        print(f'Removing keel layer at timestep {j}')
-        iceberg.uwL[keeli] = np.nan
-        iceberg.uwW[keeli] = np.nan
-        iceberg.uwV[keeli] = np.nan
-        keeli = keel_index_new
+            ## FIX ?? - idk what to fix. this is an original comment in the code - ms
+            iceberg['uwW'] = iceberg.uwL / 1.62 # update widths
+            iceberg['W'].values = (L/1.62).reshape(iceberg['W'].shape)
         
-    
-    #update values
-    iceberg.uwV[:keeli] = iceberg.dz * iceberg.uwL[1:keeli] * iceberg.uwW[1:keeli]
-    iceberg.dzk[i,j] = -1 * ((keeli-1) * iceberg.dz - iceberg.keel)
-    iceberg.uwV[keeli] = iceberg.dzk[i,j] * iceberg.uwL[keeli] * iceberg.uwW[keeli]
-    iceberg.sailV = iceberg.freeB * iceberg.L * iceberg.W
-    iceberg.totalV = np.nansum(iceberg.uwV) + iceberg.sailV
-    iceberg.sailV = (1 - ratio_i) * iceberg.totalV
-    iceberg.freeB = iceberg.sailV / (iceberg.L * iceberg.W)
-    iceberg.keel = iceberg.TH - iceberg.freeB
-    
-    # check stability, roll, and update 
-    if do_roll:
-        width_stability = 0.7
-        l_thick_ratio = iceberg.L / iceberg.TH
-        
-        if l_thick_ratio < width_stability:
-            print('iceberg rolling')
+            rho_i = 917
+            ratio_i = rho_i/1024 # ratio of ice density to water density 
             
-            iceberg.TH = iceberg.L 
-            iceberg.L = np.sqrt(iceberg.totalV / (iceberg.TH / 1.62))
-            iceberg.W = iceberg.L / 1.62
-            iceberg.freeB = (1 - ratio_i) * iceberg.TH
-            iceberg.totalV = (1 / ratio_i) * iceberg.sailV
+            keel_index_new = int(np.ceil(iceberg.keel/iceberg.dz))
+            
+            if keel_index_new < keeli:
+                print(f'Removing keel layer at timestep {j}')
+                iceberg.uwL[keeli] = np.nan
+                iceberg.uwW[keeli] = np.nan
+                iceberg.uwV[keeli] = np.nan
+                keeli = keel_index_new
+            
+    
+            #update values
+            iceberg.uwV[:keeli] = iceberg.dz * iceberg.uwL[:keeli] * iceberg.uwW[:keeli]
+            iceberg.dzkt[i,j] = -1 * ((keeli-1) * iceberg.dz - iceberg.keel)
+            iceberg.uwV[keeli] = iceberg.dzkt[i,j] * iceberg.uwL[keeli] * iceberg.uwW[keeli]
+            iceberg.sailV = iceberg.freeB * iceberg.L * iceberg.W
+            iceberg.totalV = np.nansum(iceberg.uwV) + iceberg.sailV
+            iceberg.sailV = (1 - ratio_i) * iceberg.totalV
+            iceberg.freeB = iceberg.sailV / (iceberg.L * iceberg.W)
             iceberg.keel = iceberg.TH - iceberg.freeB
-            iceberg.keeli = np.ceil(iceberg.keel/iceberg.dz)
-            iceberg.uwL[iceberg.keeli+1:] = np.nan
-            iceberg.uwW[iceberg.keeli+1:] = np.nan
-            iceberg.uwV = iceberg.dz * iceberg.uwL * iceberg.uwW
-            
-    
-    # output time dependent parameters
-    VOL[i,j] = iceberg.totalV
-    LEN[i,j] = iceberg.L
-    WIDTH[i,j] = iceberg.W
-    THICK[i,j] = iceberg.TH
-    FREEB[i,j] = iceberg.freeB
-    KEEL[i,j] = iceberg.keel
-    SAILVOL[i,j] = iceberg.sailV
-    UWVOL[i,j] = iceberg.uwV
-    UWL[:,i,j] = iceberg.uwL
-    UWW[:,i,j] = iceberg.uwW
-
-    vol_diff = np.round(np.diff(VOL[i,j-1:j]))
-    if diagnostics:
-        print(f'dt = {j}\nKeel depth = {iceberg.keel.values:.2f}\nLength = {iceberg.L.values:.2f}\n'+\
-              f'Sail Volume = {iceberg.sailV.values:8.0f} Free Board = {iceberg.freeB.values:.2f}\n'+\
-                  f'Volume Difference = {vol_diff:8.0f} DZf = {iceberg.dzk[i,j]:3.1f}')
+        
+        # check stability, roll, and update 
+            if do_roll:
+                width_stability = 0.7
+                l_thick_ratio = iceberg.L / iceberg.TH
+                
+                if l_thick_ratio < width_stability:
+                    print('iceberg rolling')
+                    
+                    iceberg.TH = iceberg.L 
+                    iceberg.L = np.sqrt(iceberg.totalV / (iceberg.TH / 1.62))
+                    iceberg.W = iceberg.L / 1.62
+                    iceberg.freeB = (1 - ratio_i) * iceberg.TH
+                    iceberg.totalV = (1 / ratio_i) * iceberg.sailV
+                    iceberg.keel = iceberg.TH - iceberg.freeB
+                    iceberg.keeli = np.ceil(iceberg.keel/iceberg.dz)
+                    iceberg.uwL[iceberg.keeli+1:] = np.nan
+                    iceberg.uwW[iceberg.keeli+1:] = np.nan
+                    iceberg.uwV = iceberg.dz * iceberg.uwL * iceberg.uwW
                     
     
+            # output time dependent parameters
+            VOL[i,j] = iceberg.totalV
+            LEN[i,j] = iceberg.L
+            WIDTH[i,j] = iceberg.W
+            THICK[i,j] = iceberg.TH
+            FREEB[i,j] = iceberg.freeB
+            KEEL[i,j] = iceberg.keel
+            SAILVOL[i,j] = iceberg.sailV
+            UWVOL[i,j] = iceberg.uwV
+            UWL[:,i,j] = iceberg.uwL
+            UWW[:,i,j] = iceberg.uwW
+
+            vol_diff = np.round(np.diff(VOL[i,j-1:j]))
+            if diagnostics:
+                print(f'dt = {j}\nKeel depth = {iceberg.keel.values:.2f}\nLength = {iceberg.L.values:.2f}\n'+\
+                      f'Sail Volume = {iceberg.sailV.values:8.0f} Free Board = {iceberg.freeB.values:.2f}\n'+\
+                          f'Volume Difference = {vol_diff:8.0f} DZf = {iceberg.dzk[i,j]:3.1f}')
+                        
+        
     # convert meltwater volumes to liquid freshwater. Convert from timestep
     # units of dt to m3/s
     rho_i_fw_ratio = rho_i / 1000
