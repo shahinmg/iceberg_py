@@ -680,7 +680,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                     
             if do_melt['turbw']:
                 # apply melt for each depth level of the iceberg
-                for k in range(int(keeli)):
+                for k in range(keeli-1):
                     T_far_func = interp1d(ctdz_flat,temp) # interp1(ctdz,temp,Z(k));
                     T_far = T_far_func(iceberg.Z[k])
                     
@@ -691,8 +691,15 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                     mtw[k,i,j] = mtw[k,i,j] * dt
                     Mturbw[k,i,j] = 2 * (mtw[k,i,j] * dz * iceberg.uwL[k]) + 1 * (mtw[k,i,j] * iceberg.dz * iceberg.uwW[k])
                     
-                else:
-                    mtw[:nz,i,j] = 0
+                mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, iceberg.depth[keeli-1],Urel[keeli-1,i,j])
+                mtw[keeli-1,i,j] = mtw[keeli-1,i,j] * dt
+                dz_keel = -1*((keeli-1) * iceberg.dz - iceberg.keel) # final layer depth
+                # Calculate melt at Keel layer
+                Mturbw[keeli-1,i,j] = 2 * (mtw[keeli-1,i,j] * dz_keel * iceberg.uwL[keeli-1]) + 1 * (mtw[keeli-1,i,j] * dz_keel * iceberg.uwW[keeli-1]) 
+                    
+                 
+            else:
+                mtw[:nz,i,j] = 0
             
             if do_melt['turba']:
                 
@@ -715,7 +722,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                 
             if do_melt['freew']:
                 
-                for k in range(int(keeli)):
+                for k in range(keeli-1):
                     
                    T_far_func = interp1d(ctdz_flat,temp) # interp1(ctdz,temp,Z(k));
                    T_far = T_far_func(iceberg.Z[k])
@@ -726,17 +733,17 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                    mb[k,i,j] = melt_buoyantwater(T_far, S_far, 'cis') # bigg method, then S doesn't matter
                    mb[k,i,j] = mb[k,i,j] * dt
                    Mfreew[k,i,j] = 2 * ((mb[k,i,j]) * iceberg.dz * iceberg.uwL[k][0] # 2 lenghts
-                                         + 2 *(mb[int(keeli),i,j]) * iceberg.dz * iceberg.uwW[k])
+                                         + 2 *(mb[keeli,i,j]) * iceberg.dz * iceberg.uwW[k])
                 # dz_keel
                 dz_keel = -1 * ((keeli-1)) * iceberg.dz - iceberg.keel # not sure about keeli -1
-                Mfreew[keeli,i,j] = 2 * ((mb[int(keeli),i,j] * dz_keel * iceberg.uwL[keeli])
-                                         + 2 * (mb[int(keeli),i,j] * dz_keel * iceberg.uwW[int(keeli)]))
+                Mfreew[keeli-1,i,j] = 2 * ((mb[keeli-1,i,j] * dz_keel * iceberg.uwL[keeli-1])
+                                         + 2 * (mb[keeli-1,i,j] * dz_keel * iceberg.uwW[keeli-1]))
                 
             else:
                 mb[:nz,i,j] = 0
                 
             iceberg['freeB'] = iceberg.freeB - ms[i,j] - ma[i,j]
-            iceberg['keel'] = iceberg.keel - mtw[int(keeli),i,j]
+            iceberg['keel'] = iceberg.keel - mtw[keeli,i,j]
             iceberg['TH'] = iceberg.keel + iceberg.freeB
             
             # reduce thickness on sides, do one L and update W's accordingly
