@@ -93,7 +93,7 @@ def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel):
     
     # Quadtratic Terms
     A = (L + DT * ci) / (U_rel * GT * cw)
-    B = -((L + DT * ci)) *GS/(GT * cw) -a*salinity_far - T_sh
+    B = -1*((L + DT * ci) * GS/(GT * cw) - a*salinity_far - T_sh)
     C = -U_rel * GS * T_sh
     
     ROOT = np.power(B,2) - 4*A*C
@@ -111,6 +111,8 @@ def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel):
     nan_mask = np.isnan(melt)
     melt[nan_mask] = 0
     
+    #make melt rate positive
+    melt = -1 * melt
     
     return melt, T_sh, T_fp
 
@@ -770,11 +772,11 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
             iceberg.uwV[:keeli] = iceberg.dz * iceberg.uwL[:keeli] * iceberg.uwW[:keeli]
             iceberg.dzkt[i,j] = -1 * ((keeli-1) * iceberg.dz - iceberg.keel)
             iceberg.uwV[keeli] = iceberg.dzkt[i,j] * iceberg.uwL[keeli] * iceberg.uwW[keeli]
-            iceberg.sailV = iceberg.freeB * iceberg.L * iceberg.W
-            iceberg.totalV = np.nansum(iceberg.uwV) + iceberg.sailV
-            iceberg.sailV = (1 - ratio_i) * iceberg.totalV
-            iceberg.freeB = iceberg.sailV / (iceberg.L * iceberg.W)
-            iceberg.keel = iceberg.TH - iceberg.freeB
+            iceberg['sailV'] = iceberg.freeB * iceberg.L * iceberg.W
+            iceberg['totalV'] = np.nansum(iceberg.uwV) + iceberg.sailV
+            iceberg['sailV'] = (1 - ratio_i) * iceberg.totalV
+            iceberg['freeB'] = iceberg.sailV / (iceberg.L * iceberg.W)
+            iceberg['keel'] = iceberg.TH - iceberg.freeB
         
         # check stability, roll, and update 
             if do_roll:
@@ -804,9 +806,9 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
             FREEB[i,j] = iceberg.freeB
             KEEL[i,j] = iceberg.keel
             SAILVOL[i,j] = iceberg.sailV
-            UWVOL[i,j] = iceberg.uwV
-            UWL[:,i,j] = iceberg.uwL
-            UWW[:,i,j] = iceberg.uwW
+            UWVOL[:,i,j] = iceberg.uwV.to_numpy().flatten()
+            UWL[:,i,j] = iceberg.uwL.to_numpy().flatten()
+            UWW[:,i,j] = iceberg.uwW.to_numpy().flatten()
 
             vol_diff = np.round(np.diff(VOL[i,j-1:j]))
             if diagnostics:
@@ -834,7 +836,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     # set up output
     
     # coords need to be time step and Z and X?
-    Mwave_da = xr.DataArray(data=Mwave,)
+    # Mwave_da = xr.DataArray(data=Mwave,)
     
     return
 
