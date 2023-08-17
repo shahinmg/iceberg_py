@@ -53,9 +53,11 @@ IceC = 0.36 # sea ice conc 0 - 1 (0 - 100%)
 ni = len(L)
 timespan = 86400.0 * 30.0 # 1 month
 
-
+mberg_dict = {}
 for length in L:
+    print(f'Processing Length {length}')
     mberg = ice_melt.iceberg_melt(length, dz, timespan, ctd_ds, IceC, Winds, Tair, SWflx, adcp_ds)
+    mberg_dict[length] = mberg
 
 
 
