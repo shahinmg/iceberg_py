@@ -858,35 +858,35 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     Mtotal = np.zeros((ni,nt))
     
     # sum all the fresh water
-    for i in range(ni-1):
-        Mtotal[i,:] = (Mwave[i,:] + Mfreea[i,:] + Mturba[i,:] + np.nansum(np.squeeze(Mturbw[:,i,:])) + 
-                                                                        np.nansum(np.squeeze(Mfreew[:,i,:]))).reshape((ni,nt))
+    for i in range(len([ni])):
+        Mtotal[i,:] = (Mwave[i,:] + Mfreea[i,:] + Mturba[i,:] + np.nansum(np.squeeze(Mturbw[:,i,:]),axis=0) + np.nansum(np.squeeze(Mfreew[:,i,:]),axis=0)).reshape((ni,nt))
+                                                                        
     
     # set up output
     
-    iceberg['Mwave'] = xr.DataArray(data=Mwave, name='Mwave', coords = {"t":t},  dims=["X","t"])
-    iceberg['Mfreea'] = xr.DataArray(data=Mfreea, name='Mfreea', coords = {"t":t},  dims=["X","t"])
-    iceberg['Mturbw'] = xr.DataArray(data=Mturbw, name='Mturbw', coords = {"t":t,"Z":ice_init[0].Z.values},  dims=["Z","X","t"])
-    iceberg['Mturba'] = xr.DataArray(data=Mturba, name='Mturba', coords = {"t":t},  dims=["X","t"])
-    iceberg['Mfreew'] = xr.DataArray(data=Mturbw, name='Mfreew', coords = {"t":t,"Z":ice_init[0].Z.values},  dims=["Z","X","t"])
-    iceberg['Mtotal'] = xr.DataArray(data=Mtotal, name='Mtotal', coords = {"t":t},  dims=["X","t"])
+    iceberg['Mwave'] = xr.DataArray(data=Mwave, name='Mwave', coords = {"time":t},  dims=["X","time"])
+    iceberg['Mfreea'] = xr.DataArray(data=Mfreea, name='Mfreea', coords = {"time":t},  dims=["X","time"])
+    iceberg['Mturbw'] = xr.DataArray(data=Mturbw, name='Mturbw', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
+    iceberg['Mturba'] = xr.DataArray(data=Mturba, name='Mturba', coords = {"time":t},  dims=["X","time"])
+    iceberg['Mfreew'] = xr.DataArray(data=Mturbw, name='Mfreew', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
+    iceberg['Mtotal'] = xr.DataArray(data=Mtotal, name='Mtotal', coords = {"time":t},  dims=["X","time"])
     
-    iceberg['i_mwave'] = xr.DataArray(data=mw, name='Mfreea', coords = {"t":t},  dims=["X","t"])
-    iceberg['i_mfreea'] = xr.DataArray(data=ms, name='Mfreea', coords = {"t":t},  dims=["X","t"])
-    iceberg['i_mturbw'] = xr.DataArray(data=mtw, name='Mturbw', coords = {"t":t,"Z":ice_init[0].Z.values},  dims=["Z","X","t"])
-    iceberg['i_mturba'] = xr.DataArray(data=ma, name='Mturba', coords = {"t":t},  dims=["X","t"])
+    iceberg['i_mwave'] = xr.DataArray(data=mw, name='Mfreea', coords = {"time":t},  dims=["X","time"])
+    iceberg['i_mfreea'] = xr.DataArray(data=ms, name='Mfreea', coords = {"time":t},  dims=["X","time"])
+    iceberg['i_mturbw'] = xr.DataArray(data=mtw, name='Mturbw', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
+    iceberg['i_mturba'] = xr.DataArray(data=ma, name='Mturba', coords = {"time":t},  dims=["X","time"])
     # iceberg['i_mtotalm'] = xr.DataArray(data=Mturbw, name='Mfreew', coords = {"t":t,"Z":ice_init[0].Z.values},  dims=["Z","X","t"])
     
-    iceberg['VOL'] = xr.DataArray(data=VOL, name='VOL', coords = {"t":t},  dims=["X","t"])
-    iceberg['FREEB'] = xr.DataArray(data=FREEB, name='FREEB', coords = {"t":t},  dims=["X","t"])
-    iceberg['KEEL'] = xr.DataArray(data=KEEL, name='KEEL', coords = {"t":t},  dims=["X","t"])
-    iceberg['LEN'] = xr.DataArray(data=LEN, name='LEN', coords = {"t":t},  dims=["X","t"])
-    iceberg['SAILVOL'] = xr.DataArray(data=SAILVOL, name='SAILVOL', coords = {"t":t},  dims=["X","t"])
-    iceberg['THICK'] = xr.DataArray(data=THICK, name='THICK', coords = {"t":t},  dims=["X","t"])
-    iceberg['WIDTH'] = xr.DataArray(data=WIDTH, name='WIDTH', coords = {"t":t},  dims=["X","t"])
-    iceberg['UWL'] = xr.DataArray(data=UWL, name='UWL', coords = {"t":t,"Z":ice_init[0].Z.values},  dims=["Z","X","t"])
-    iceberg['UWVOL'] = xr.DataArray(data=UWVOL, name='UWVOL', coords = {"t":t,"Z":ice_init[0].Z.values},  dims=["Z","X","t"])
-    iceberg['UWW'] = xr.DataArray(data=UWW, name='UWW', coords = {"t":t,"Z":ice_init[0].Z.values},  dims=["Z","X","t"])
+    iceberg['VOL'] = xr.DataArray(data=VOL, name='VOL', coords = {"time":t},  dims=["X","time"])
+    iceberg['FREEB'] = xr.DataArray(data=FREEB, name='FREEB', coords = {"time":t},  dims=["X","time"])
+    iceberg['KEEL'] = xr.DataArray(data=KEEL, name='KEEL', coords = {"time":t},  dims=["X","time"])
+    iceberg['LEN'] = xr.DataArray(data=LEN, name='LEN', coords = {"time":t},  dims=["X","time"])
+    iceberg['SAILVOL'] = xr.DataArray(data=SAILVOL, name='SAILVOL', coords = {"time":t},  dims=["X","time"])
+    iceberg['THICK'] = xr.DataArray(data=THICK, name='THICK', coords = {"time":t},  dims=["X","time"])
+    iceberg['WIDTH'] = xr.DataArray(data=WIDTH, name='WIDTH', coords = {"time":t},  dims=["X","time"])
+    iceberg['UWL'] = xr.DataArray(data=UWL, name='UWL', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
+    iceberg['UWVOL'] = xr.DataArray(data=UWVOL, name='UWVOL', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
+    iceberg['UWW'] = xr.DataArray(data=UWW, name='UWW', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
     
     # coords need to be time step and Z and X?
     # Mwave_da = xr.DataArray(data=Mwave,)
