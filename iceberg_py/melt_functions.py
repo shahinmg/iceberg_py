@@ -479,7 +479,11 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
             return ice
         
 
-
+def heat_flux():
+    
+    
+    
+    return
 
 
 def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=False,
@@ -862,20 +866,53 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
         Mtotal[i,:] = (Mwave[i,:] + Mfreea[i,:] + Mturba[i,:] + np.nansum(np.squeeze(Mturbw[:,i,:]),axis=0) + np.nansum(np.squeeze(Mfreew[:,i,:]),axis=0)).reshape((ni,nt))
                                                                         
     
+    i_mtotalm = np.nanmean(mw) + np.nanmean(mb) + np.nanmean(ms) + np.nanmean(ma) + np.nanmean(mtw) # mean over all time, depths, processes  in m/day
+    
     # set up output
     
-    iceberg['Mwave'] = xr.DataArray(data=Mwave, name='Mwave', coords = {"time":t},  dims=["X","time"])
-    iceberg['Mfreea'] = xr.DataArray(data=Mfreea, name='Mfreea', coords = {"time":t},  dims=["X","time"])
-    iceberg['Mturbw'] = xr.DataArray(data=Mturbw, name='Mturbw', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
-    iceberg['Mturba'] = xr.DataArray(data=Mturba, name='Mturba', coords = {"time":t},  dims=["X","time"])
-    iceberg['Mfreew'] = xr.DataArray(data=Mturbw, name='Mfreew', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
-    iceberg['Mtotal'] = xr.DataArray(data=Mtotal, name='Mtotal', coords = {"time":t},  dims=["X","time"])
+    # integrated melt terms
+    iceberg['Mwave'] = xr.DataArray(data=Mwave, name='Mwave', coords = {"time":t},  dims=["X","time"], attrs={'Description':'Integrated wave melt',
+                                                                                                              'Units': 'm3/s'})
     
-    iceberg['i_mwave'] = xr.DataArray(data=mw, name='Mfreea', coords = {"time":t},  dims=["X","time"])
-    iceberg['i_mfreea'] = xr.DataArray(data=ms, name='Mfreea', coords = {"time":t},  dims=["X","time"])
-    iceberg['i_mturbw'] = xr.DataArray(data=mtw, name='Mturbw', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
-    iceberg['i_mturba'] = xr.DataArray(data=ma, name='Mturba', coords = {"time":t},  dims=["X","time"])
-    # iceberg['i_mtotalm'] = xr.DataArray(data=Mturbw, name='Mfreew', coords = {"t":t,"Z":ice_init[0].Z.values},  dims=["Z","X","t"])
+    iceberg['Mfreea'] = xr.DataArray(data=Mfreea, name='Mfreea', coords = {"time":t},  dims=["X","time"], attrs={'Description':"Integrated melt from solar radiation in air, based on Condron's mitberg formulation",
+                                                                                                                 'Units': 'm3/s'})
+    
+    iceberg['Mturbw'] = xr.DataArray(data=Mturbw, name='Mturbw', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"],attrs={'Description':"Integrated forced water melt",
+                                                                                                                 'Units': 'm3/s'})
+    
+    iceberg['Mturba'] = xr.DataArray(data=Mturba, name='Mturba', coords = {"time":t},  dims=["X","time"],attrs={'Description':"Integrated Forced convection in air, based on Condron's mitberg formulation",
+                                                                                                                 'Units': 'm3/s'})
+    
+    iceberg['Mfreew'] = xr.DataArray(data=Mturbw, name='Mfreew', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"], attrs={'Description':"Integrated buoyant convection along sidewalls in water, based on bigg (condron)",
+                                                                                                                 'Units': 'm3/s'})
+    
+    iceberg['Mtotal'] = xr.DataArray(data=Mtotal, name='Mtotal', coords = {"time":t},  dims=["X","time"], attrs={'Description':"total volume FW for each time step",
+                                                                                                                 'Units': 'm3/s'})
+    
+    # melt terms in m/day 
+    
+    iceberg['i_mwave'] = xr.DataArray(data=mw, name='i_mwave', coords = {"time":t},  dims=["X","time"], attrs={'Description':"wave melt",
+                                                                                                                 'Units': 'm/day'})
+    
+    
+    iceberg['i_mfreea'] = xr.DataArray(data=ms, name='i_mfreea', coords = {"time":t},  dims=["X","time"], attrs={'Description':"melt from solar radiation in air, based on Condron's mitberg formulation",
+                                                                                                                 'Units': 'm/day'})
+    
+    
+    iceberg['i_mturbw'] = xr.DataArray(data=mtw, name='i_mturbw', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"], attrs={'Description':"forced water melt",
+                                                                                                                 'Units': 'm/day'})
+    
+    
+    iceberg['i_mfreew'] = xr.DataArray(data=mb, name='i_mfreew', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"], attrs={'Description':"buoyant convection along sidewalls in water, based on bigg (condron)",
+                                                                                                                 'Units': 'm/day'})
+    
+    
+    iceberg['i_mturba'] = xr.DataArray(data=ma, name='i_mturba', coords = {"time":t},  dims=["X","time"], attrs={'Description':"Forced convection in air, based on Condron's mitberg formulation",
+                                                                                                                 'Units': 'm/day'})
+    
+    
+    iceberg['i_mtotalm'] = xr.DataArray(data=i_mtotalm, name='i_mtotalm', attrs={'Description':"mean over all time, depths, processes  in m/day",
+                                                                                                                 'Units': 'm/day'})
     
     iceberg['VOL'] = xr.DataArray(data=VOL, name='VOL', coords = {"time":t},  dims=["X","time"])
     iceberg['FREEB'] = xr.DataArray(data=FREEB, name='FREEB', coords = {"time":t},  dims=["X","time"])
