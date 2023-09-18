@@ -9,8 +9,10 @@ import melt_functions as ice_melt
 import numpy as np
 import xarray as xr
 import scipy.io as sio
+from plot_icebergshape import plot_icebergshape
 
-L = np.arange(50,1050,50)
+# L = np.arange(50,1050,50)
+L = [50]
 dz = 5
 
 #Test first L
@@ -60,4 +62,17 @@ for length in L:
     mberg_dict[length] = mberg
 
 
+berg = mberg_dict[50]
+plot_icebergshape(berg)
 
+
+l_heat = 3.34e5
+k=mberg_dict[1000].KEEL.sel(time=86400*2)
+ul = mberg_dict[1000].UWL.sel(Z=slice(150,k.data[0]),time=86400*2)
+uw = mberg_dict[1000].UWL.sel(Z=slice(150,k.data[0]),time=86400*2)
+A = uw * ul
+
+mfw = mberg_dict[1000].i_mfreew.sel(Z=slice(150,k.data[0]), time=86400*2)
+mtw = mberg_dict[1000].i_mturbw.sel(Z=slice(150,k.data[0]), time=86400*2)
+
+not_hf = np.mean(mtw + mfw,axis=1) * l_heat  * A * 1000

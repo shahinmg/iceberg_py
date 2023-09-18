@@ -481,6 +481,8 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
 
 def heat_flux():
     
+    # do I take the mean per depth of the heat flux? 
+    # I guess I can do both an averaged 
     
     
     return
@@ -650,7 +652,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     for i,iceberg in enumerate(ice_init):
         # get iceberg
         # add DZKt bc idk how else to do this
-        iceberg['dzkt'] = xr.DataArray(data=DZKt, name='DZKt', coords = {"t":t},  dims=["X","t"])
+        iceberg['dzkt'] = xr.DataArray(data=DZKt, name='DZKt', coords = {"time":t},  dims=["X","time"])
         iceberg['dzkt'].values[i,0] = iceberg.dzk 
         
         #use ice just initializes the ice_init values
@@ -928,6 +930,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     # coords need to be time step and Z and X?
     # Mwave_da = xr.DataArray(data=Mwave,)
     
+    # iceberg.assign_attrs(Description='Iceberg depth independent melt model from Moon et al., 2018.')
     
     return iceberg
 
