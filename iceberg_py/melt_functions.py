@@ -12,7 +12,7 @@ from scipy.interpolate import interp1d, interp2d
 from scipy.spatial import cKDTree, KDTree
 import xarray as xr
 from math import ceil
-
+from sklearn.linear_model import LinearRegression
 
 def melt_wave(windu, sst, sea_ice_conc):
     
@@ -206,7 +206,7 @@ def keeldepth(L, method):
         return keel_depth
 
 
-def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
+def barker_carea(L, keel_depth, dz, LWratio=1.62, tabular=200, method='barker'):
     # #
     # # calculates underwater cross sectional areas using Barker et al. 2004,
     # # and converts to length underwater (for 10 m thicknesses, this is just CrossArea/10) and sail area for K<200, 
@@ -237,7 +237,7 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
         dz = 10
         LWratio = 1.62
     
- 
+    # table 5
     if dz == 10: # originally for dz=10 m layers
         a = [9.51,11.17,12.48,13.6,14.3,13.7,13.5,15.8,14.7,11.8,11.4,10.9,10.5,10.1,9.7,9.3,8.96,8.6,8.3,7.95]
         a = np.array(a).reshape((len(a),1))
@@ -261,8 +261,15 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
         for i in range(len(a)-1):
             aa[0,i+1] = np.nanmean(a[i:i+2,:])
             bb[0,i+1] = np.nanmean(b[i:i+2,:])
-    
-        newa = np.empty((40,1)) 
+        
+        kz = keel_depth[0] # keel depth
+        kza = np.ceil(kz/dz) # layer index for keel depth
+        newa = np.empty((40,1)) #np.ceil(kz/dz) instead of 40?
+        # if kza <= 40:    
+        #     newa = np.empty((40,1)) #np.ceil(kz/dz) instead of 40?
+        # elif kza > 40:
+        #     newa = np.empty((int(kza),1)) #np.ceil(kz/dz) instead of 40?
+
         newa[:] = np.nan
         newb = newa.copy()
         
@@ -275,7 +282,7 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
         a = newa/2
         b = newb/2
     
-    a_s = 28.194; # for sail area
+    a_s = 28.194; # for sail area table 4 barker et al 2004
     b_s = -1420.2;    
     
     # initialize arrays
@@ -284,7 +291,7 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     # temp = nan.*ones(zlen,length(L));  # 100 layers of 5-m each, so up to 500 m deep berg
     # temps = nan.*ones(1,length(L));  # sail area
     
-    z_coord_flat = np.arange(dz,500+dz,dz)
+    z_coord_flat = np.arange(dz,600+dz,dz) # deepest iceberg is defined here 
     z_coord = z_coord_flat.reshape(len(z_coord_flat),1)
     depth_layers = xr.DataArray(data=z_coord, coords = {"Z":z_coord_flat},  dims=["Z","X"], name="Z")
     zlen = len(depth_layers.Z)
@@ -296,38 +303,38 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, method='barker'):
     
     
     # K_l200 = keel_depth[keel_depth<200] # might cause an issue?
-    K_l200 = np.where(keel_depth<=200)[0] # get indices of keel_depth < 200
+    K_ltab = np.where(keel_depth<=tabular)[0] # get indices of keel_depth < tabular
     # if(~isempty(ind))
-    if K_l200.size != 0: # check if empty
-        for i in range(len(K_l200)):
+    if K_ltab.size != 0: # check if empty
+        for i in range(len(K_ltab)):
             
-            kz = keel_depth[i] # keel depth
-            # dz_np = np.array([dz],dtype=np.float64)
-            kza = np.ceil(kz/dz) # layer index for keel depth
+            # kz = keel_depth[i] # keel depth
+            # # dz_np = np.array([dz],dtype=np.float64)
+            # kza = np.ceil(kz/dz) # layer index for keel depth
             # kza = ceil(kz,dz) # layer index for keel depth
             
             for nl in range(int(kza)):
-                temp[nl,i] = a[nl] * L[K_l200[i]] + b[nl]
+                temp[nl,i] = a[nl] * L[K_ltab[i]] + b[nl]
                 
-        temps[K_l200] = a_s * L[K_l200] + b_s
+        temps[K_ltab] = a_s * L[K_ltab] + b_s
         
         if L < 65:
             temps[L<65] = 0.077 * np.power(L[L<65],2) # fix for L<65, barker 2004
     
     
     # then do icebergs D>200 for tabular
-    K_g200 = np.where(keel_depth>200)[0]
-    if K_g200.size != 0:
-        for i in range(len(K_g200)):
+    K_gtab = np.where(keel_depth>tabular)[0]
+    if K_gtab.size != 0:
+        for i in range(len(K_gtab)):
             
             kz = keel_depth[i] # keel depth
             kza = np.ceil(kz/dz) # layer index for keel depth
             
             for nl in range(int(kza)):
                 # temp[nl,i] = a[nl] * L[K_g200[i]] + b[nl]
-                temp[nl,i] = L[K_g200[i]] * dz
+                temp[nl,i] = L[K_gtab[i]] * dz
         
-        temps[K_g200] = 0.1211 * L[K_g200] * keel_depth[K_g200]
+        temps[K_gtab] = 0.1211 * L[K_gtab] * keel_depth[K_gtab]
         
     
     cross_area = xr.DataArray(data=temp, coords = {"Z":z_coord_flat}, dims=["Z","X"], name="cross_area")
