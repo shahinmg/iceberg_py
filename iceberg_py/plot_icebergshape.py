@@ -57,7 +57,7 @@ def plot_icebergshape(iceberg):
     # shape = np.zeros(())
     
     ax.plot(xx,yy,color='b',linewidth=3)
-    ax.set_title(f'Initial {int(iceberg.L)} Shape')
+    ax.set_title(f'Initial {int(iceberg.L)} m Length Shape')
     
         
     

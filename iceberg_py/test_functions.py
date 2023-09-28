@@ -62,7 +62,7 @@ for length in L:
     mberg_dict[length] = mberg
 
 
-berg = mberg_dict[200]
+berg = mberg_dict[350]
 plot_icebergshape(berg)
 
 

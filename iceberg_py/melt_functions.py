@@ -29,7 +29,7 @@ def melt_wave(windu, sst, sea_ice_conc):
     
     
     sea_state = 1.5 * np.sqrt(windu) + 0.1 * windu
-    IceTerm = 1 + np.cos(np.power(sea_ice_conc,3) * np.pi)
+    IceTerm = 1 + np.cos(np.power(sea_ice_conc,3) * np.pi) # typo in their eqn. 7, should be + sign (See Gladstone et al. 2001)
     
     melt = (1/12) * sea_state * IceTerm * (sst + 2) # m/day
     melt = melt / 86400 # m/second 
@@ -52,7 +52,7 @@ def melt_solar(solar_rad):
     latent_heat = 3.33e5 #J/kg
     rho_i = 917 #kg/m3
     albedo = 0.7
-    absorbed = 1 - albedo
+    absorbed = 1 - albedo # percentage absorbed
     
     melt = absorbed * solar_rad / (rho_i * latent_heat) # m/s
     
@@ -121,18 +121,21 @@ def melt_forcedair(T_air, U_rel, L):
     
     T_ice = -4 # ice temperature
     Li = 3.33e5 # latent heat of fusion in ice J/kg
-    rho_i = 900 # density of ice
-    air_viscosity = 1.46e-5 # kinematic viscosity of air
-    air_diffusivity = 2.16e-5 # thermal diffusivity of air
-    air_conductivity = 0.0249 # thermal condictivity of air
+    rho_i = 917 # density of ice
+    air_viscosity = 1.46e-5 # kinematic viscosity of air m2/s idk at what temperature around 15 c
+    air_diffusivity = 2.16e-5 # thermal diffusivity of air m2/s
+    air_conductivity = 0.0249 # thermal condictivity of air at 0 C W/mK watts per meter kelvin at ~ 15 c
     cold = T_air < 0 # freezing celsius
     
-    Pr = air_viscosity / air_diffusivity # Prandtl number
-    Re = np.abs(U_rel) * L / air_viscosity # Reynolds number based on relative air speed
-    Nu = 0.058 * (np.power(Re,0.8)) / (np.power(Pr,0.4))
-    HF = (1/L) * (Nu * air_conductivity * (T_air - T_ice)) # HEAT FLUX
+    Pr = air_viscosity / air_diffusivity # Prandtl number unitless
+    Re = np.abs(U_rel) * L / air_viscosity # Reynolds number based on relative air speed unitless
+    Nu = 0.058 * (np.power(Re,0.8)) / (np.power(Pr,0.4)) # Nusselt number
+    HF = (1/L) * (Nu * air_conductivity * (T_air - T_ice)) # HEAT FLUX confused bc this is C and Kelvin in units
+    
+    # I should convert temperatures to kelvin and not divide by length to get m/s
     
     # melt rate in m/s
+    # not sure how this is m/s
     melt = HF / (rho_i * Li)
     
     if cold:
@@ -148,14 +151,17 @@ def melt_buoyantwater(T_w, S_w, method):
     
     if method == 'bigg':
         dT = T_w
-        mday = 7.62e-3 * dT + 1.3e-3 * np.power(dT,2) 
+        
+        # not sure how this is m/day
+        mday = 7.62e-3 * dT + 1.3e-3 * np.power(dT,2) # equation 9 Bigg et al., 1997 10.1016/S0165-232X(97)00012-8
+        # equation is from El-Tahan
         
     elif method == 'cis':
         dT = T_w - Tfp
         mday = 7.62e-3 * dT + 1.29e-3 * np.power(dT,2)
     
-    # convert from m/s to m/day
-    # not sure why original code did this conversion here
+    # convert to m/s from m/day
+
     melt = mday / 86400
     
     return melt
@@ -719,7 +725,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                 WH_depth = np.minimum(freeB, 5 * wave_height[i,j])
                 # apply 1/2 mw to L and 1/2 mw to uwL(1,:)
                 mw[i,j] = melt_wave(WindV[j], SST, sice[j]) # m/s though I need to check units of data source
-                mw[i,j] = mw[i,j] * dt
+                mw[i,j] = mw[i,j] * dt # m/day
                 
                 top_length = np.nanmean([float(L), uwL[0][0]]) # mean of length and first layer underwater
                 Mwave[i,j] = 1 * (mw[i,j] * WH_depth * top_length) + 1 * (mw[i,j] *WH_depth * top_length) # 1 lengths 1 widths (coming at it obliquely) confused by this
@@ -747,7 +753,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                     Mturbw[k,i,j] = 2 * (mtw[k,i,j] * dz * uwL[k]) + 1 * (mtw[k,i,j] * dz * uwW[k])
                     
                 mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[keeli-1],Urel[keeli-1,i,j])
-                mtw[keeli-1,i,j] = mtw[keeli-1,i,j] * dt
+                mtw[keeli-1,i,j] = mtw[keeli-1,i,j] * dt # m/day
                 dz_keel = -1*((keeli-1) * dz - keel) # final layer depth
                 # Calculate melt at Keel layer
                 Mturbw[keeli-1,i,j] = 2 * (mtw[keeli-1,i,j] * dz_keel * uwL[keeli-1]) + 1 * (mtw[keeli-1,i,j] * dz_keel * uwW[keeli-1]) 
@@ -885,6 +891,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                         
         
     # convert meltwater volumes to liquid freshwater. Convert from timestep
+    # originally in units of m3/day 
     # units of dt to m3/s
     rho_i_fw_ratio = rho_i / 1000
     Mwave = (rho_i_fw_ratio * Mwave) / dt
