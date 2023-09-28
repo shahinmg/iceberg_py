@@ -54,7 +54,7 @@ def melt_solar(solar_rad):
     albedo = 0.7
     absorbed = 1 - albedo
     
-    melt = absorbed * solar_rad / (rho_i * latent_heat)
+    melt = absorbed * solar_rad / (rho_i * latent_heat) # m/s
     
     return melt
     
@@ -103,7 +103,7 @@ def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel):
     Mtemp1 = (-B + np.sqrt(ROOT)) / (2*A)
     Mtemp2 = (-B - np.sqrt(ROOT)) / (2*A)
     
-    melt = np.minimum(Mtemp1,Mtemp2)
+    melt = np.minimum(Mtemp1,Mtemp2) # m/sec
     
     # clean data to remove melt rates below freezing point
     mask = T_sh < 0
@@ -132,6 +132,7 @@ def melt_forcedair(T_air, U_rel, L):
     Nu = 0.058 * (np.power(Re,0.8)) / (np.power(Pr,0.4))
     HF = (1/L) * (Nu * air_conductivity * (T_air - T_ice)) # HEAT FLUX
     
+    # melt rate in m/s
     melt = HF / (rho_i * Li)
     
     if cold:
@@ -152,7 +153,9 @@ def melt_buoyantwater(T_w, S_w, method):
     elif method == 'cis':
         dT = T_w - Tfp
         mday = 7.62e-3 * dT + 1.29e-3 * np.power(dT,2)
-        
+    
+    # convert from m/s to m/day
+    # not sure why original code did this conversion here
     melt = mday / 86400
     
     return melt
@@ -240,6 +243,9 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, tabular=200, method='barker'):
     # table 5
     if dz == 10: # originally for dz=10 m layers
         a = [9.51,11.17,12.48,13.6,14.3,13.7,13.5,15.8,14.7,11.8,11.4,10.9,10.5,10.1,9.7,9.3,8.96,8.6,8.3,7.95]
+        
+        
+        
         a = np.array(a).reshape((len(a),1))
         
         b = [25.9,107.5,232,344.6,457,433,520,1112,1125,853,931,1007,1080,1149,1216,1281,1343,1403,1460,1515]
@@ -253,6 +259,19 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, tabular=200, method='barker'):
         b = [25.9,107.5,232,344.6,457,433,520,1112,1125,853,931,1007,1080,1149,1216,1281,1343,1403,1460,1515]
         b = -1 * (np.array(b).reshape((len(b),1)))
     
+        # a_lin = a[9:,:]
+        # b_lin = b[9:,:]
+        # model = LinearRegression().fit(a_lin, b_lin)
+        # r_sq = model.score(a_lin, b_lin)
+        
+        # mean = np.mean(np.diff(a_lin,axis=0))
+        # a2 = np.arange(a_lin[-1][0],0,mean).reshape((-1,1))
+        # b2 = model.predict(a2)
+        
+        # a_stack = np.vstack((a,a2[1:,:]))
+        # b_stack = np.vstack((b,b2[1:,:]))
+        
+        
         aa = np.empty(a.T.shape)
         aa[0] = a[0]
         bb = np.empty(b.T.shape)
@@ -262,8 +281,9 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, tabular=200, method='barker'):
             aa[0,i+1] = np.nanmean(a[i:i+2,:])
             bb[0,i+1] = np.nanmean(b[i:i+2,:])
         
-        kz = keel_depth[0] # keel depth
-        kza = np.ceil(kz/dz) # layer index for keel depth
+        # kz = keel_depth[0] # keel depth
+        # kza = np.ceil(kz/dz) # layer index for keel depth
+        # newa = np.empty((a.size*2,1)) #np.ceil(kz/dz) instead of 40?
         newa = np.empty((40,1)) #np.ceil(kz/dz) instead of 40?
         # if kza <= 40:    
         #     newa = np.empty((40,1)) #np.ceil(kz/dz) instead of 40?
@@ -284,6 +304,11 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, tabular=200, method='barker'):
     
     a_s = 28.194; # for sail area table 4 barker et al 2004
     b_s = -1420.2;    
+    
+    
+
+    
+    
     
     # initialize arrays
     # icebergs.Z = dz:dz:500; icebergs.Z=icebergs.Z';
@@ -308,9 +333,9 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, tabular=200, method='barker'):
     if K_ltab.size != 0: # check if empty
         for i in range(len(K_ltab)):
             
-            # kz = keel_depth[i] # keel depth
-            # # dz_np = np.array([dz],dtype=np.float64)
-            # kza = np.ceil(kz/dz) # layer index for keel depth
+            kz = keel_depth[i] # keel depth
+            # dz_np = np.array([dz],dtype=np.float64)
+            kza = np.ceil(kz/dz) # layer index for keel depth
             # kza = ceil(kz,dz) # layer index for keel depth
             
             for nl in range(int(kza)):

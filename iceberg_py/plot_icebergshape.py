@@ -26,7 +26,7 @@ def plot_icebergshape(iceberg):
     
     xk = min(xx).data * np.ones((2,1))
     yk = [max(yy), min(yy)]
-    ax.plot(xx,yy,color='b')
+    ax.plot(xx,yy,color='b',linewidth=1)
     for i in range(int(keeli)-1):
         
         dt = iceberg.uwL.isel(Z=i) / 2
@@ -40,7 +40,7 @@ def plot_icebergshape(iceberg):
         xk = [xk, np.min(xx) * np.ones((2,1))]
         yk = [yk, [np.max(yy), np.min(yy)]]
         
-        ax.plot(xx,yy,color='b')
+        ax.plot(xx,yy,color='b',linewidth=1)
         
     
     dt = iceberg.uwL.isel(Z=int(keeli)) / 2
@@ -56,7 +56,8 @@ def plot_icebergshape(iceberg):
     
     # shape = np.zeros(())
     
-    ax.plot(xx,yy,color='b')
+    ax.plot(xx,yy,color='b',linewidth=3)
+    ax.set_title(f'Initial {int(iceberg.L)} Shape')
     
         
     
