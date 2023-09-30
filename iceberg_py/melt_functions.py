@@ -641,7 +641,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     # interpolate to Urel
     # Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt #interp2d will be depreciated
     interp2d_func = interp2d(Urelative.tadcp.values.flatten(), Urelative.zadcp.values.flatten(), vmadcp)
-    Urel[:,0,:] = interp2d_func(np.arange(1,nt+1),ice_init[0].Z.to_numpy())
+    Urel[:,0,:] = interp2d_func(np.arange(1,nt+1),ice_init[0].Z.to_numpy()) # this interpolates the Urel at specific times and depths
     # interp2d = RegularGridInterpolator((Urelative.tadcp, Urelative.zadcp, vmadcp))
     
     # set up melt volume arrays
@@ -965,7 +965,8 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     iceberg['UWL'] = xr.DataArray(data=UWL, name='UWL', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
     iceberg['UWVOL'] = xr.DataArray(data=UWVOL, name='UWVOL', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
     iceberg['UWW'] = xr.DataArray(data=UWW, name='UWW', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
-    
+    iceberg['Urel'] = xr.DataArray(data=Urel, name='Urel', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
+
     # coords need to be time step and Z and X?
     # Mwave_da = xr.DataArray(data=Mwave,)
     
