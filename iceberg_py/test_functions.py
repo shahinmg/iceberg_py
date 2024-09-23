@@ -12,8 +12,13 @@ import scipy.io as sio
 from plot_icebergshape import plot_icebergshape
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d, interp2d
+from matplotlib import cm,colors
+import pickle
+import geopandas as gpd
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-L = np.arange(50,1050,50)
+
+L = np.arange(50,1450,50)
 # L = [400]
 dz = 5
 
@@ -52,43 +57,11 @@ adcp_ds = xr.Dataset({'zadcp': (['adcpX','adcpY'],adcp['zadcp']),
 
 
 
-# elif do_constantUrel == False: # load ADCP pulse events here, based on SF ADCP data
-#     Urel = np.nan * np.ones((nz,ni,nt))
-#     # kki = 1 #dsearchn(Urelative.zadcp(:),ceil(ice_init(1).K));
-#     kdt = cKDTree(Urelative.zadcp[:]) # https://stackoverflow.com/questions/66494042/dsearchn-equivalent-in-python
-#     pq = np.ceil(ice_init[0].keel)
-#     kki = kdt.query(pq)[-1]
-    
-#     if IceConc == 1:
-#         # if sea ice conc = 100%, assume we're talking about melange and don't take out mean horizontal flow
-#         vmadcp = Urelative.vadcp
-            
-#     else:
-#         # for drifting icebergs, take out mean horizontal flow
-
-# vmadcp = adcp_ds.vadcp - np.matlib.repmat(np.nanmean(adcp_ds.vadcp[0:kki+1,:],axis=0),len(adcp_ds.zadcp),1)
-
-# # make zero below keel depth to be certain
-# vmadcp[kki+1:,:] = 0
-# vmadcp = np.abs(vmadcp) # speed
-# # add in vertical velocity if any (wvel in Urelative structure)
-
-# vmadcp = vmadcp + Urelative.wvel.values[0] * np.ones(np.shape(vmadcp)) # (right now wvel constant in time/space)
-
-# # interpolate to Urel
-# # Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt #interp2d will be depreciated
-# interp2d_func = interp2d(Urelative.tadcp.values.flatten(), Urelative.zadcp.values.flatten(), vmadcp)
-# Urel[:,0,:] = interp2d_func(np.arange(1,nt+1),ice_init[0].Z.to_numpy()) # this interpolates the Urel at specific times and depths
-# interp2d = RegularGridInterpolator((Urelative.tadcp, Urelative.zadcp, vmadcp))
-
-# interp2d_func = interp2d(adcp_ds.tadcp.values.flatten(), adcp_ds.zadcp.values.flatten(), vmadcp)
-# Urel[:,0,:] = interp2d_func(np.arange(1,nt+1),ice_init[0].Z.to_numpy()) 
-
-
 Tair = 6.5 # air temp in C
 SWflx = 306 # W/m2 of shortwave flux
 Winds = 2.3 # wind speed in m/s
-IceC = 0.36 # sea ice conc 0 - 1 (0 - 100%)
+# IceC = 0.36 # sea ice conc 0 - 1 (0 - 100%)
+IceC = 1 # sea ice conc 0 - 1 (0 - 100%)
 ni = len(L)
 timespan = 86400.0 * 30.0 # 1 month
 
@@ -98,24 +71,13 @@ for length in L:
     mberg = ice_melt.iceberg_melt(length, dz, timespan, ctd_ds, IceC, Winds, Tair, SWflx, adcp_ds)
     mberg_dict[length] = mberg
 
-ctdz = ctd_ds.depth
-ctdz_flat = ctdz.T.to_numpy().flatten()
+# op = '/media/laserglaciers/upernavik/iceberg_py/mbergs.pickle'
+# with open(op,'wb') as handle:
+#     pickle.dump(mberg_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-t = ctd_ds.temp.data
-s = ctd_ds.salt.data
-salt = np.nanmean(s,axis=1)
-temp = np.nanmean(t,axis=1)
-# constants from Jenkins
-a = -5.73e-2 # Salinity contribution
-b = 8.32e-2 # constant
-c = -7.61e-4 # pressure contribution C/dbar
 
-T_fp = a * salt + b + c * ctdz_flat # Freezing point temperature
-T_Tfp = temp - T_fp # temperature - freezing point in celsius
-T_Tfp_k = T_Tfp + 273.15 # convert from celsius to kelvin
-
-berg = mberg_dict[350]
-plot_icebergshape(berg)
+plot_icebergshape(mberg_dict[350])
+plot_icebergshape(mberg_dict[1000])
 
 l_heat = 3.34e5
 Aww_depth = 150
@@ -140,6 +102,8 @@ Aww_melt_rate = np.mean(mtw + mfw,axis=1) / 86400 # convrrt to meters/second
 Qib = total_iceberg_melt * l_heat * 1000 # iceberg heatflux per z layer
 Qib_sum = np.sum(Qib)
 
+ctdz = ctd_ds.depth
+ctdz_flat = ctdz.T.to_numpy().flatten()
 # calculate heat flux of Aww
 fjord_width = 5000
 fjord_depth = ctdz_flat.max()
@@ -147,13 +111,115 @@ Cp = 3980 # specific heat capactiy J/kgK
 p_sw = 1027 # kg/m3
 
 # need to get the temperature and depths at the same spacing
+t = ctd_ds.temp.data
+s = ctd_ds.salt.data
+salt = np.nanmean(s,axis=1)
+temp = np.nanmean(t,axis=1)
+# constants from Jenkins
+a = -5.73e-2 # Salinity contribution
+b = 8.32e-2 # constant
+c = -7.61e-4 # pressure contribution C/dbar
 
+T_fp = a * salt + b + c * ctdz_flat # Freezing point temperature
+T_Tfp = temp - T_fp # temperature - freezing point in celsius
+T_Tfp_k = T_Tfp + 273.15 # convert from celsius to kelvin
 
+z_coord_flat = np.arange(dz,600+dz,dz) # deepest iceberg is defined here 
+z_coord = z_coord_flat.reshape(len(z_coord_flat),1)
+temp_func = interp1d(ctdz_flat, T_Tfp_k)
+T_Tfp_k_Z = temp_func(mberg_dict[1000].Z.data).reshape(len(z_coord_flat),1)
+T_Tfp_k_Z = xr.DataArray(data=T_Tfp_k_Z, name='T_Tfp_k', coords = {"Z":z_coord_flat},  dims=["Z","X"])
 
-fig, ax  = plt.subplots()
+fjord_widths = xr.DataArray(data=np.array([fjord_width]*120).reshape(len(z_coord_flat),1),
+                            name='fjord_widths', coords = {"Z":z_coord_flat},  dims=["Z","X"])
+Urel2 = mberg_dict[1000].Urel.sel(time=86400*2)
+integrand=T_Tfp_k_Z*Urel2*(fjord_widths*5)
+integrand_sum=np.sum(integrand.sel(Z=slice(Aww_depth,None)))
+Qaww = integrand_sum.data * (Cp*p_sw)
+
+# Plot CTD profile
+fig, axs  = plt.subplots(1,2,sharey=True)
+axs = axs.flatten()
 d = ctd_ds.depth.data
 t = ctd_ds.temp.data
 temp = np.nanmean(t,axis=1)
-ax.plot(temp, d.flatten())
-ax.set_ylim(d.max(),0)
+axs[0].plot(temp, d.flatten())
+axs[0].set_ylim(d.max(),0)
+axs[0].set_ylabel('Depth (m)')
+axs[0].set_xlabel('Temperature ($^{\circ}$C)')
+axs[0].set_title('Temperature Profile')
+
+urel_x = mberg_dict[1000].Urel.sel(time=86400*2).data.flatten()
+urel_y = mberg_dict[1000].Urel.sel(time=86400*2).Z
+axs[1].plot(urel_x, urel_y)
+axs[1].set_xlabel('Along Fjord Velocity (m s$^{-1}$)')
+axs[1].set_title('Velocity Profile')
+
+# Heat flux figure per layer per size of iceberg
+Qib_dict = {}
+for length in L:
+    berg = mberg_dict[length]
+    k = berg.KEEL.sel(time=86400*2)
+    # if k >= Aww_depth:
+    Mfreew = berg.Mfreew.sel(Z=slice(None,k.data[0]), time=86400*2)
+    Mturbw = berg.Mturbw.sel(Z=slice(None,k.data[0]), time=86400*2)
+    
+    total_iceberg_melt = np.mean(Mfreew + Mturbw,axis=1)
+    Qib = total_iceberg_melt * l_heat * 1000 # iceberg heatflux per z layer
+    Qib_dict[length] = Qib
+
+
+fig2, ax2 = plt.subplots()     
+ax2.set_ylabel('Depth (m)')    
+ax2.set_xlabel('Iceberg Heatflux (W)')    
+colors_blues = cm.Blues(np.linspace(0,1,len(Qib_dict)))
+
+cmap = plt.get_cmap('Blues').copy()
+divider = make_axes_locatable(ax2)
+cax = divider.append_axes("right", size="5%", pad=0.1)
+
+for i,length in enumerate(Qib_dict):
+
+    x = Qib_dict[length].data
+    y = Qib_dict[length].Z.data
+    ax2.plot(x, y, c='black', lw=5)
+    ax2.plot(x,y,color=colors_blues[i],lw=3)
+    ax2.set_ylim(600,y.min())
+ax2.axhline(y=Aww_depth,linewidth=3, color='#d62728')
+
+l_min = L.min()
+l_max = L.max()
+fig2.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin = l_min,vmax = l_max), cmap=cmap),
+              cax=cax,label='Iceberg Length (m)')
+
+
+gdf_pkl_path = '/media/laserglaciers/upernavik/iceberg_py/convex_hull_icebergs.pkl'
+with open(gdf_pkl_path, 'rb') as src:
+    icebergs_gdf = pickle.load(src)
+
+
+vc = icebergs_gdf['binned'].value_counts()
+fig3, ax3 = plt.subplots()     
+icebergs_gdf['binned'].value_counts().sort_index().plot(kind='bar',logy=True,ax=ax3,
+                                                        edgecolor = 'k')
+# ax3.hist(icebergs_gdf['max_dim'].values, bins=np.arange(0,1050,50),
+#          edgecolor = "black")
+ax3.set_ylabel('Count')
+ax3.set_xlabel('Iceberg surface length (m)')
+
+
+Qib_totals = {}
+for length in L:
+    
+    count = vc[length]
+    Qib_sum = np.nansum(Qib_dict[length].sel(Z=slice(Aww_depth,None)))
+    Qib_totals[length] = Qib_sum * count
+    print(f'{length}: {Qib_sum*count}')
+    
+qib_total=np.nansum(list(Qib_totals.values()))
+    
+    
+    
+    
+    
 

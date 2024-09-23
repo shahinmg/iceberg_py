@@ -59,7 +59,7 @@ def melt_solar(solar_rad):
     return melt
     
 
-def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel):
+def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel, factor):
     
     # % Silva et al eqn, using parameters from Holland and Jenkins
     # % M = melt_forcedwater(T_far,S_far,P_base,U_rel)
@@ -81,8 +81,11 @@ def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel):
     b = 8.32e-2 # constant
     c = -7.61e-4 # pressure contribution C/dbar
     
-    GT = 1.1e-3 # 6e-4; %econd value in Silva, first in Jenkins model heat transfer coefficient
-    GS = 3.1e-5 # 2.2e-5; %second value in Silva, first in Jenkins model % salt transfer coefficient
+
+    # factor based on adjustments from Jackson et al, 2020 10.1029/2019GL085335
+    GT = 1.1e-3 * factor # 6e-4; %second value in Silva, first in Jenkins model heat transfer coefficient
+    GS = 3.1e-5 * factor # 2.2e-5; %second value in Silva, first in Jenkins model % salt transfer coefficient
+    
     L = 3.35e5  # latent heat of fusion of ice (in J/kg)
     cw = 3974;  # specific heat of water (J/kg/C)
     ci = 2009;  # " of ice
@@ -393,7 +396,7 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, tabular=200, method='barker'):
     
     return icebergs
 
-def init_iceberg_size(L, dz=10, stability_method='equal'):
+def init_iceberg_size(L, dz=10, stability_method='equal',quiet=True):
     # # initialize iceberg size and shapes, based on length
     # # 
     # # given L, outputs all other iceberg parameters
@@ -448,7 +451,9 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
         # Not sure when to use either? MATLAB code has if(0) and if(1) for 'keel' and 'equal'
         if stability_method == 'keel':
             # change keeldepth to be shallower
-            print(f'Fixing keel depth for L = {L} m size class')
+            # if quiet == False:
+            #     print(f'Fixing keel depth for L = {L} m size class')
+                
             
             diff_thick_width = thickness - waterline_width # Get stable thickness
             keel_new = keel_depth - rat_i * diff_thick_width # change by percent of difference
@@ -480,7 +485,8 @@ def init_iceberg_size(L, dz=10, stability_method='equal'):
         
         elif stability_method == 'equal':
             # change W to equal L, recalculate volumes
-            print(f'Fixing width to equal L, for L = {L} m size class')
+            if quiet == False:
+                print(f'Fixing width to equal L, for L = {L} m size class')
             # use L:W ratio of to make stable, set so L:W makes EC=EC_thresh
             
             width_temporary = stability_thresh * thickness[0]
@@ -526,7 +532,7 @@ def heat_flux():
     return
 
 
-def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=False,
+def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=False, factor=4, quiet=True,
                  do_roll = True, do_slab = True,
                  do_melt={'wave':True, 'turbw':True, 
                           'turba':True, 'freea':True, 'freew':True
@@ -606,8 +612,8 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
         temp = np.nanmean(ctddata.temp,axis=1) #double check axis
         salt = np.nanmean(ctddata.salt,axis=1)
     elif n == 1:
-        temp = ctddata.temp
-        salt = ctddata.salt
+        temp = ctddata.temp.data.flatten()
+        salt = ctddata.salt.data.flatten()
     
     ctdz = ctddata.depth
     ctdz_flat = ctdz.T.to_numpy().flatten()
@@ -615,9 +621,11 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     
     if do_constantUrel:
         Urel = Urelative * np.ones((nz,ni,nt))
-    
+        Urel_unadj = Urel.copy()
+        
     elif do_constantUrel == False: # load ADCP pulse events here, based on SF ADCP data
         Urel = np.nan * np.ones((nz,ni,nt))
+        Urel_unadj = Urel.copy()
         # kki = 1 #dsearchn(Urelative.zadcp(:),ceil(ice_init(1).K));
         kdt = cKDTree(Urelative.zadcp[:]) # https://stackoverflow.com/questions/66494042/dsearchn-equivalent-in-python
         pq = np.ceil(ice_init[0].keel)
@@ -631,17 +639,25 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
             # for drifting icebergs, take out mean horizontal flow
             vmadcp = Urelative.vadcp - np.matlib.repmat(np.nanmean(Urelative.vadcp[0:kki+1,:],axis=0),len(Urelative.zadcp),1)
     
-    # make zero below keel depth to be certain
-    vmadcp[kki+1:,:] = 0
-    vmadcp = np.abs(vmadcp) # speed
-    # add in vertical velocity if any (wvel in Urelative structure)
+        # make zero below keel depth to be certain
+        vmadcp_unadj = vmadcp.copy()
+        vmadcp[kki+1:,:] = 0
+        vmadcp = np.abs(vmadcp) # speed
+        # add in vertical velocity if any (wvel in Urelative structure)
+        
+        vmadcp = vmadcp + Urelative.wvel.values[0] * np.ones(np.shape(vmadcp)) # (right now wvel constant in time/space)
+        # vmadcp_unadj = np.abs(vmadcp_unadj) + Urelative.wvel.values[0] * np.ones(np.shape(vmadcp_unadj))
+        vmadcp_unadj = vmadcp_unadj + Urelative.wvel.values[0] * np.ones(np.shape(vmadcp_unadj))
     
-    vmadcp = vmadcp + Urelative.wvel.values[0] * np.ones(np.shape(vmadcp)) # (right now wvel constant in time/space)
     
-    # interpolate to Urel
-    # Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt #interp2d will be depreciated
-    interp2d_func = interp2d(Urelative.tadcp.values.flatten(), Urelative.zadcp.values.flatten(), vmadcp)
-    Urel[:,0,:] = interp2d_func(np.arange(1,nt+1),ice_init[0].Z.to_numpy()) # this interpolates the Urel at specific times and depths
+        # interpolate to Urel
+        # Urel[:,0,:] = interp2d(Urelative.tadcp, Urelative.zadcp, vmadcp, np.arange(0,nt), ice_init[0].Z) # double check length of nt #interp2d will be depreciated
+        interp2d_func = interp2d(Urelative.tadcp.values.flatten(), Urelative.zadcp.values.flatten(), vmadcp)
+        interp2d_func_unadj = interp2d(Urelative.tadcp.values.flatten(), Urelative.zadcp.values.flatten(), vmadcp_unadj)
+        
+        Urel[:,0,:] = interp2d_func(np.arange(1,nt+1),ice_init[0].Z.to_numpy()) # this interpolates the Urel at specific times and depths
+        Urel_unadj[:,0,:] = interp2d_func_unadj(np.arange(1,nt+1),ice_init[0].Z.to_numpy())
+    
     # interp2d = RegularGridInterpolator((Urelative.tadcp, Urelative.zadcp, vmadcp))
     
     # set up melt volume arrays
@@ -748,11 +764,11 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                     S_far_func = interp1d(ctdz_flat,salt) # interp1(ctdz,salt,Z(k));
                     S_far = S_far_func(depth[k])
                     
-                    mtw[k,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[k],Urel[k,i,j])
+                    mtw[k,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[k],Urel[k,i,j],factor=factor)
                     mtw[k,i,j] = mtw[k,i,j] * dt
                     Mturbw[k,i,j] = 2 * (mtw[k,i,j] * dz * uwL[k]) + 1 * (mtw[k,i,j] * dz * uwW[k])
                     
-                mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[keeli-1],Urel[keeli-1,i,j])
+                mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[keeli-1],Urel[keeli-1,i,j],factor=factor)
                 mtw[keeli-1,i,j] = mtw[keeli-1,i,j] * dt # m/day
                 dz_keel = -1*((keeli-1) * dz - keel) # final layer depth
                 # Calculate melt at Keel layer
@@ -831,7 +847,8 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
             keel_index_new = int(np.ceil(keel/dz))
             
             if keel_index_new < keeli:
-                print(f'Removing keel layer at timestep {j}')
+                # if quiet == False:
+                #     print(f'Removing keel layer at timestep {j}')
                 uwL[keeli-1] = np.nan
                 uwW[keeli-1] = np.nan
                 uwV[keeli-1] = np.nan
@@ -965,7 +982,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
     iceberg['UWL'] = xr.DataArray(data=UWL, name='UWL', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
     iceberg['UWVOL'] = xr.DataArray(data=UWVOL, name='UWVOL', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
     iceberg['UWW'] = xr.DataArray(data=UWW, name='UWW', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
-    iceberg['Urel'] = xr.DataArray(data=Urel, name='Urel', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
+    iceberg['Urel'] = xr.DataArray(data=Urel_unadj, name='Urel', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"])
 
     # coords need to be time step and Z and X?
     # Mwave_da = xr.DataArray(data=Mwave,)
@@ -980,14 +997,5 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
 
 
 """
-NEED TO CODE
-keeldepth - done
-init_iceberg_size - done
-barker_carea - done
-iceberg_melt
-
-Currently the output does not match the matlab output. 08/16/23. I checked the VOL in the output
-and they start to differ at specific times
-example VOL[26] VOL(27) for L = 50 is when they differ
 
 """

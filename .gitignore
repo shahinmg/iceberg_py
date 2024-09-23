@@ -1,3 +1,6 @@
 .spyproject/
 *.qgz
 infiles/
+figs/
+outfiles/
+*.png
