@@ -45,11 +45,11 @@ ctd_ds = xr.Dataset({'depth':(['Z','X'], depth),
 
 
 adcp = sio.loadmat(adcp_path)
-
+constant_w_vel = 0.05
 adcp_ds = xr.Dataset({'zadcp': (['adcpX','adcpY'],adcp['zadcp']),
                       'vadcp': (['adcpX','adcpZ'], adcp['vadcp']),
                       'tadcp': (['adcpY','adcpZ'], adcp['tadcp']),
-                      'wvel':  (['adcpY'], np.array([0.05]))
+                      'wvel':  (['adcpY'], np.array([constant_w_vel]))
     })
 
 

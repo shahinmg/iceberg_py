@@ -64,12 +64,16 @@ ni = len(L)
 timespan = 86400.0 * 30.0 # 1 month
 
 factor = 4 # 4 is from Jackson et al 2020 to increase transfer coeffs
+use_constant_tf = True
+constant_tf = 6.6788244 # from Slater 2022 nature geoscience
 
 # run the model for each length class and store in dict
 mberg_dict = {}
 for length in L:
     print(f'Processing Length {length}')
-    mberg = ice_melt.iceberg_melt(length, dz, timespan, ctd_ds, IceC, Winds, Tair, SWflx, adcp_ds,factor=factor)
+    mberg = ice_melt.iceberg_melt(length, dz, timespan, ctd_ds, IceC, Winds, Tair, SWflx, adcp_ds, factor=factor, 
+                                  use_constant_tf=use_constant_tf, constant_tf = constant_tf)
+    
     mberg_dict[length] = mberg
 
 op = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/berg_model/20230727T142031_bergs_v2.pkl'
@@ -246,7 +250,7 @@ Q_ib_ds.average_aww_temp.attrs = {'description': 'Average water temp below the A
                          'Units': 'C'}
 
 op = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib/'
-# Q_ib_ds.to_netcdf(f'{op}20230727T142031_high_helheim_coeff_{factor}.nc')
+# Q_ib_ds.to_netcdf(f'{op}20230727T142031_high_helheim_coeff_{factor}_constant_tf.nc')
 
 # Q_ib_ds = xr.Dataset(
 #     data_vars= dict(Qib = (['x'],qib_total, {'units':'W'}),

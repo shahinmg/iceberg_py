@@ -59,7 +59,7 @@ def melt_solar(solar_rad):
     return melt
     
 
-def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel, factor):
+def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel, factor, use_constant_tf = False, constant_tf = None):
     
     # % Silva et al eqn, using parameters from Holland and Jenkins
     # % M = melt_forcedwater(T_far,S_far,P_base,U_rel)
@@ -91,8 +91,13 @@ def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel, factor):
     ci = 2009;  # " of ice
     DT = 15;    # temp difference between iceberg core and bottom surface (this is for Antarctica, maybe less for Greenland?)
     
-    T_fp = a * salinity_far + b + c * pressure_base # Freezing point temperature
-    T_sh = temp_far - T_fp # Temperature above freezing point
+    if use_constant_tf:
+        T_sh = constant_tf
+        T_fp = None
+        
+    else:
+        T_fp = a * salinity_far + b + c * pressure_base # Freezing point temperature
+        T_sh = temp_far - T_fp # Temperature above freezing point
     
     # Quadtratic Terms
     A = (L + DT * ci) / (U_rel * GT * cw)
@@ -147,21 +152,33 @@ def melt_forcedair(T_air, U_rel, L):
     return melt
 
 
-def melt_buoyantwater(T_w, S_w, method):
-    
+def melt_buoyantwater(T_w, S_w, method, use_constant_tf = False, constant_tf = None):
+   
+        
     Tf = -0.036 - (0.0499 * S_w) - (0.0001128 * np.power(S_w,2)) # freezing pt of seawater due to S changes
     Tfp = Tf * np.exp(-0.19 * (T_w - Tf)) # freezing point temperature
     
     if method == 'bigg':
-        dT = T_w
+        
+        if use_constant_tf:
+            dT = constant_tf
+            
+        else:
+            dT = T_w
         
         # not sure how this is m/day
         mday = 7.62e-3 * dT + 1.3e-3 * np.power(dT,2) # equation 9 Bigg et al., 1997 10.1016/S0165-232X(97)00012-8
         # equation is from El-Tahan
         
     elif method == 'cis':
-        dT = T_w - Tfp
-        mday = 7.62e-3 * dT + 1.29e-3 * np.power(dT,2)
+        
+        if use_constant_tf:
+            dT = constant_tf
+            mday = 7.62e-3 * dT + 1.29e-3 * np.power(dT,2)
+            
+        else:
+            dT = T_w - Tfp
+            mday = 7.62e-3 * dT + 1.29e-3 * np.power(dT,2)
     
     # convert to m/s from m/day
 
@@ -532,8 +549,8 @@ def heat_flux():
     return
 
 
-def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_constantUrel=False, factor=4, quiet=True,
-                 do_roll = True, do_slab = True,
+def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_constantUrel=False, factor=4, quiet=True,
+                 do_roll = True, do_slab = True, use_constant_tf = False, constant_tf = None,
                  do_melt={'wave':True, 'turbw':True, 
                           'turba':True, 'freea':True, 'freew':True
                           }):
@@ -764,11 +781,14 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                     S_far_func = interp1d(ctdz_flat,salt) # interp1(ctdz,salt,Z(k));
                     S_far = S_far_func(depth[k])
                     
-                    mtw[k,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[k],Urel[k,i,j],factor=factor)
+                    mtw[k,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[k],Urel[k,i,j],factor=factor,
+                                                              use_constant_tf = use_constant_tf, constant_tf=constant_tf)
+                    
                     mtw[k,i,j] = mtw[k,i,j] * dt
                     Mturbw[k,i,j] = 2 * (mtw[k,i,j] * dz * uwL[k]) + 1 * (mtw[k,i,j] * dz * uwW[k])
                     
-                mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[keeli-1],Urel[keeli-1,i,j],factor=factor)
+                mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[keeli-1],Urel[keeli-1,i,j],factor=factor, 
+                                                                use_constant_tf = use_constant_tf, constant_tf=constant_tf)
                 mtw[keeli-1,i,j] = mtw[keeli-1,i,j] * dt # m/day
                 dz_keel = -1*((keeli-1) * dz - keel) # final layer depth
                 # Calculate melt at Keel layer
@@ -807,7 +827,8 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative,do_c
                    S_far_func = interp1d(ctdz_flat,salt) # interp1(ctdz,salt,Z(k));
                    S_far = S_far_func(depth[k]) # giving slightly different result than matlab
                    
-                   mb[k,i,j] = melt_buoyantwater(T_far, S_far, 'cis') # bigg method, then S doesn't matter
+                   mb[k,i,j] = melt_buoyantwater(T_far, S_far, 'cis', use_constant_tf = use_constant_tf, 
+                                                 constant_tf=constant_tf) # bigg method, then S doesn't matter
                    mb[k,i,j] = mb[k,i,j] * dt
                    # Mfreew[k,i,j] = 2 * (((mb[k,i,j]) * dz * uwL[k][0]) # 2 lenghts
                    #                       + 2 *(mb[keeli,i,j]) * dz * uwW[k])

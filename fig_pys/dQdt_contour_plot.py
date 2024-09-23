@@ -9,7 +9,7 @@ Created on Mon Sep 23 11:49:43 2024
 import matplotlib.pyplot as plt
 import numpy as np
 import geopandas as gpd
-
+from matplotlib import cm, ticker
 
 psw = 1024 #kg m3
 csw = 3974 #J kg-1 C-1
@@ -31,10 +31,10 @@ dQ_dt = psw * csw * ( (Volume_test * dTFX) / (dtY * day2sec) )
 # levels_log = np.logspace(np.log10(dQ_dt.min()),np.log10(dQ_dt.max()), 10) #https://stackoverflow.com/questions/65823932/plt-contourf-with-given-number-of-levels-in-logscale
 # levels = np.arange(dQ_dt.min(), dQ_dt.max(), 5)
 # levels = [0.  , 0.04, 0.08, 0.12, 0.16, 0.2 , 0.24, 0.28, 0.32]
-# levels = np.arange(0, 0.5, 0.05)
+levels = np.arange(2e4, 5e5, 0.2e5)
 
 fig, ax = plt.subplots()
-CS = ax.contourf(dTFX, dtY, dQ_dt)#, levels=levels)
+CS = ax.contourf(dTFX, dtY, dQ_dt, levels=levels)
 
 
 cbar = fig.colorbar(CS)
