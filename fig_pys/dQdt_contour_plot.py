@@ -11,18 +11,19 @@ import numpy as np
 import geopandas as gpd
 
 
-psw = 1.024 #kg km3
+psw = 1024 #kg m3
 csw = 3974 #J kg-1 C-1
 day2sec = 86400
 # fixed volume vary flushing and thermal forcing
 
 dt = np.arange(20,365,1) #flushing rate
 
-TF = np.linspace(5.5, 8, dt.shape[0]) #thermal forcing
+TF = np.linspace(5.5, 8, dt.shape[0]) #thermal forcing from Slater histogram TF of Helheim
 
 dTFX, dtY = np.meshgrid(TF, dt)
 
 Volume_test = 20 * 5 * 0.3 #km3 Helheim Fjord test
+Volume_test = Volume_test * 1e3 #m3
 
 dQ_dt = psw * csw * ( (Volume_test * dTFX) / (dtY * day2sec) )
 
