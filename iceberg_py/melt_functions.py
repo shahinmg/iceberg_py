@@ -903,8 +903,8 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_
                     totalV = (1 / ratio_i) * sailV
                     keel = TH - freeB
                     keeli = np.ceil(keel/dz)
-                    uwL[keeli+1:] = np.nan
-                    uwW[keeli+1:] = np.nan
+                    uwL[int(keeli+1):] = np.nan
+                    uwW[int(keeli+1):] = np.nan
                     uwV = dz * uwL * uwW
                     
     

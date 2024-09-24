@@ -44,4 +44,4 @@ cbar.ax.set_ylabel('dQ/dt')
 ax.set_xlabel('Ocean Thermal Forcing (C)')
 ax.set_ylabel('Flushing Time (Days)')
 
-ax.set_title('Helheim Fjord Volume Test')
+ax.set_title('Helheim Fjord (20 km x 5 km x 0.3 km)')

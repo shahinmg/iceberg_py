@@ -46,11 +46,13 @@ ctd_ds = xr.Dataset({'depth':(['Z','X'], depth),
 
 
 adcp = sio.loadmat(adcp_path)
+u_rel = 0.1
+# u_rel 
 
 adcp_ds = xr.Dataset({'zadcp': (['adcpX','adcpY'],adcp['zadcp']),
                       'vadcp': (['adcpX','adcpZ'], adcp['vadcp']),
                       'tadcp': (['adcpY','adcpZ'], adcp['tadcp']),
-                      'wvel':  (['adcpY'], np.array([0.05]))
+                      'wvel':  (['adcpY'], np.array([u_rel]))
     })
 
 
@@ -71,8 +73,12 @@ constant_tf = 6.6788244 # from Slater 2022 nature geoscience
 mberg_dict = {}
 for length in L:
     print(f'Processing Length {length}')
-    mberg = ice_melt.iceberg_melt(length, dz, timespan, ctd_ds, IceC, Winds, Tair, SWflx, adcp_ds, factor=factor, 
+    # mberg = ice_melt.iceberg_melt(length, dz, timespan, ctd_ds, IceC, Winds, Tair, SWflx, adcp_ds, factor=factor, 
+    #                               use_constant_tf=use_constant_tf, constant_tf = constant_tf)
+    
+    mberg = ice_melt.iceberg_melt(length, dz, timespan, ctd_ds, IceC, Winds, Tair, SWflx, u_rel, do_constantUrel=True, factor=factor, 
                                   use_constant_tf=use_constant_tf, constant_tf = constant_tf)
+    
     
     mberg_dict[length] = mberg
 
