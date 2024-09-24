@@ -46,8 +46,22 @@ ctd_ds = xr.Dataset({'depth':(['Z','X'], depth),
 
 
 adcp = sio.loadmat(adcp_path)
-u_rel = 0.1
-# u_rel 
+u_rel = 0.01
+
+Tair = 5.5 # air temp in C
+SWflx = 306 # W/m2 of shortwave flux
+Winds = 2.3 # wind speed in m/s
+# IceC = 0.36 # sea ice conc 0 - 1 (0 - 100%)
+IceC = 1 # sea ice conc 0 - 1 (0 - 100%)
+ni = len(L)
+timespan = 86400.0 * 30.0 # 1 month
+
+factor = 1 # 4 is from Jackson et al 2020 to increase transfer coeffs
+use_constant_tf = True
+# constant_tf = 6.6788244 # from Slater 2022 nature geoscience
+constant_tf = 5.5 # from Slater 2022 nature geoscience
+
+
 
 adcp_ds = xr.Dataset({'zadcp': (['adcpX','adcpY'],adcp['zadcp']),
                       'vadcp': (['adcpX','adcpZ'], adcp['vadcp']),
@@ -57,17 +71,6 @@ adcp_ds = xr.Dataset({'zadcp': (['adcpX','adcpY'],adcp['zadcp']),
 
 
 
-Tair = 6.5 # air temp in C
-SWflx = 306 # W/m2 of shortwave flux
-Winds = 2.3 # wind speed in m/s
-# IceC = 0.36 # sea ice conc 0 - 1 (0 - 100%)
-IceC = 1 # sea ice conc 0 - 1 (0 - 100%)
-ni = len(L)
-timespan = 86400.0 * 30.0 # 1 month
-
-factor = 4 # 4 is from Jackson et al 2020 to increase transfer coeffs
-use_constant_tf = True
-constant_tf = 6.6788244 # from Slater 2022 nature geoscience
 
 # run the model for each length class and store in dict
 mberg_dict = {}
@@ -125,6 +128,7 @@ fjord_width = 5000
 fjord_depth = ctdz_flat.max()
 Cp = 3980 # specific heat capactiy J/kgK
 p_sw = 1027 # kg/m3
+p_fw = 1000 # freshwater density kg/m3
 
 # need to get the temperature and depths at the same spacing
 t = ctd_ds.temp.data
@@ -164,9 +168,11 @@ for length in L:
     Mturbw = berg.Mturbw.sel(Z=slice(None,k.data[0]), time=86400*2)
     
     total_iceberg_melt = np.mean(Mfreew + Mturbw,
-                                 axis=1) # Not sure why I took mean here
+                                 axis=1) # Not sure why I took mean here; Mfeew and Mturbw are integreated melt terms in m3/sec per layer face of iceberg
     
-    Qib = total_iceberg_melt * l_heat * 1000 # iceberg heatflux per z layer
+    Qib = total_iceberg_melt * l_heat * p_fw #iceberg heatflux per z layer; since these are integrated terms do not add area
+    
+    
     Qib_dict[length] = Qib
 
 
@@ -229,7 +235,8 @@ Qib_percentage_high = qib_total/Qaww_high
 Qib_percentage_low = qib_total/Qaww_low
 date = gpd.pd.to_datetime('20230727T142031')
 aww_temp = np.mean(ctd_ds.temp.sel(tZ=slice(Aww_depth,None))).data
-Q_ib_ds = xr.Dataset({'Qib':(qib_total),
+Q_ib_ds = xr.Dataset(
+                    {'Qib':(qib_total),
                       'iceberg_date':(date),
                       'iceberg_concentraion': ('high'),
                       'Qaww_high':(Qaww_high),
@@ -241,6 +248,8 @@ Q_ib_ds = xr.Dataset({'Qib':(qib_total),
                       'average_aww_temp': (aww_temp)
                       }
     )
+
+
 Q_ib_ds.Qib.attrs = {'units':'W'}
 Q_ib_ds.iceberg_date.attrs = {'sensor':'S2A'}
 Q_ib_ds.iceberg_concentraion.attrs = {'description':'Qualatative assesment'}
@@ -256,7 +265,8 @@ Q_ib_ds.average_aww_temp.attrs = {'description': 'Average water temp below the A
                          'Units': 'C'}
 
 op = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib/'
-# Q_ib_ds.to_netcdf(f'{op}20230727T142031_high_helheim_coeff_{factor}_constant_tf.nc')
+Q_ib_ds.to_netcdf(f'{op}20230727T142031_high_helheim_coeff_{factor}_constant_tf_{constant_tf}_constant_UREL_{u_rel}.nc')
+
 
 # Q_ib_ds = xr.Dataset(
 #     data_vars= dict(Qib = (['x'],qib_total, {'units':'W'}),

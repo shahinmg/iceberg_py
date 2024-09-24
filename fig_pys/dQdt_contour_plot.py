@@ -18,30 +18,55 @@ day2sec = 86400
 
 dt = np.arange(20,365,1) #flushing rate
 
-TF = np.linspace(5.5, 8, dt.shape[0]) #thermal forcing from Slater histogram TF of Helheim
+TF = np.linspace(5, 8.5, dt.shape[0]) #thermal forcing from Slater histogram TF of Helheim
 
 dTFX, dtY = np.meshgrid(TF, dt)
 
-Volume_test = 20 * 5 * 0.3 #km3 Helheim Fjord test
-Volume_test = Volume_test * 1e3 #m3
+# Volume_test = 23e3 * 5e3 * 300 #km3 Helheim Fjord test
+Volume_test = 148461041 * 300 # area from Helheim fjord shapefile
 
 dQ_dt = psw * csw * ( (Volume_test * dTFX) / (dtY * day2sec) )
 
 
 # levels_log = np.logspace(np.log10(dQ_dt.min()),np.log10(dQ_dt.max()), 10) #https://stackoverflow.com/questions/65823932/plt-contourf-with-given-number-of-levels-in-logscale
-# levels = np.arange(dQ_dt.min(), dQ_dt.max(), 5)
+# levels = np.arange(dQ_dt.min(), dQ_dt.max(), 10)
+# levels = np.linspace(dQ_dt.min(), dQ_dt.max(), 50)
+levels = np.logspace(np.log10(dQ_dt.min()),np.log10(dQ_dt.max()), 10) #https://stackoverflow.com/questions/65823932/plt-contourf-with-given-number-of-levels-in-logscale
+
+
 # levels = [0.  , 0.04, 0.08, 0.12, 0.16, 0.2 , 0.24, 0.28, 0.32]
-levels = np.arange(2e4, 5e5, 0.2e5)
+# levels = np.arange(2e4, 5e5, 0.2e5)
 
 fig, ax = plt.subplots()
-CS = ax.contourf(dTFX, dtY, dQ_dt, levels=levels)
+CS = ax.contourf(dTFX, dtY, dQ_dt, levels = levels,
+                 cmap='cividis', extend='max')
 
 
 cbar = fig.colorbar(CS)
-cbar.ax.set_ylabel('dQ/dt')
+cbar.ax.set_ylabel('dQ/dt (W)')
+# cbar.ax.set_ylim(levels[0],levels[-3])
 
 # ax.clabel(CS)
 ax.set_xlabel('Ocean Thermal Forcing (C)')
 ax.set_ylabel('Flushing Time (Days)')
 
-ax.set_title('Helheim Fjord (20 km x 5 km x 0.3 km)')
+ax.set_title('Helheim Fjord')
+
+
+# calc helheim 
+
+constant_tf_55 = 5.5 # from Slater 2022 nature geoscience
+constant_tf_67 = 6.67 # from Slater 2022 nature geoscience
+constant_tf_8 = 7.62 # from Slater 2022 nature geoscience
+
+dQ_dt_HEL_55 = psw * csw * ( (Volume_test * constant_tf_55) / (50 * day2sec) )
+dQ_dt_HEL_67 = psw * csw * ( (Volume_test * constant_tf_67) / (50 * day2sec) )
+dQ_dt_HEL_8 = psw * csw * ( (Volume_test * constant_tf_8) / (50 * day2sec) )
+
+
+# ax.scatter(constant_tf_55, 50)
+# ax.scatter(constant_tf_67, 50)
+# ax.scatter(constant_tf_8, 50)
+
+
+
