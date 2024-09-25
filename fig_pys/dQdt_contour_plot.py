@@ -10,27 +10,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 import geopandas as gpd
 from matplotlib import cm, ticker
-
+from matplotlib import ticker, colors
+from matplotlib.ticker import ScalarFormatter
 psw = 1024 #kg m3
 csw = 3974 #J kg-1 C-1
 day2sec = 86400
 # fixed volume vary flushing and thermal forcing
 
 dt = np.arange(20,365,1) #flushing rate
-
-TF = np.linspace(5, 8.5, dt.shape[0]) #thermal forcing from Slater histogram TF of Helheim
+# dt = np.logspace(1, 365, 1)
+TF = np.linspace(5, 8, dt.shape[0]) #thermal forcing from Slater histogram TF of Helheim
 
 dTFX, dtY = np.meshgrid(TF, dt)
 
 # Volume_test = 23e3 * 5e3 * 300 #km3 Helheim Fjord test
-Volume_test = 148461041 * 300 # area from Helheim fjord shapefile
+Volume_test = 148461041 * 300 # area from Helheim fjord shapefile ~ 28 km length
 
 dQ_dt = psw * csw * ( (Volume_test * dTFX) / (dtY * day2sec) )
 
 
 # levels_log = np.logspace(np.log10(dQ_dt.min()),np.log10(dQ_dt.max()), 10) #https://stackoverflow.com/questions/65823932/plt-contourf-with-given-number-of-levels-in-logscale
 # levels = np.arange(dQ_dt.min(), dQ_dt.max(), 10)
-# levels = np.linspace(dQ_dt.min(), dQ_dt.max(), 50)
+# levels = np.linspace(dQ_dt.min(), dQ_dt.max(), 20)
 levels = np.logspace(np.log10(dQ_dt.min()),np.log10(dQ_dt.max()), 10) #https://stackoverflow.com/questions/65823932/plt-contourf-with-given-number-of-levels-in-logscale
 
 
@@ -38,12 +39,19 @@ levels = np.logspace(np.log10(dQ_dt.min()),np.log10(dQ_dt.max()), 10) #https://s
 # levels = np.arange(2e4, 5e5, 0.2e5)
 
 fig, ax = plt.subplots()
-CS = ax.contourf(dTFX, dtY, dQ_dt, levels = levels,
-                 cmap='cividis', extend='max')
+CS = ax.contourf(dTFX, dtY, dQ_dt, levels = levels, norm=colors.LogNorm(),
+                 cmap='cividis', extend='both')
 
 
-cbar = fig.colorbar(CS)
-cbar.ax.set_ylabel('dQ/dt (W)')
+cbar = fig.colorbar(CS, ticks=levels, 
+                    format=ticker.FixedFormatter(levels)
+                    )
+
+cbar.formatter = ScalarFormatter(useMathText=True)
+cbar.formatter.set_scientific(True)
+cbar.ax.yaxis.set_offset_position('left')
+
+cbar.ax.set_ylabel(r'Q$_{aw}$ (W)')
 # cbar.ax.set_ylim(levels[0],levels[-3])
 
 # ax.clabel(CS)
@@ -69,4 +77,5 @@ dQ_dt_HEL_8 = psw * csw * ( (Volume_test * constant_tf_8) / (50 * day2sec) )
 # ax.scatter(constant_tf_8, 50)
 
 
-
+op = '/media/laserglaciers/upernavik/iceberg_py/figs/'
+fig.savefig(f'{op}helheim_fjord_Qaw_contour.png')
