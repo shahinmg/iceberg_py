@@ -12,18 +12,18 @@ from rasterio.plot import adjust_band
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import colors, cm
+import matplotlib.ticker as ticker
 import geopandas as gpd
 import numpy as np
 import pickle
 
 s2_path = '/media/laserglaciers/upernavik/sentinel_2/kanger/S2B_MSIL1C_20170710T141009_merge_complete.tif'
-convex_hull_path = '/media/laserglaciers/upernavik/segment-anything/prediction_geoms/kanger/20170710T141009/20170710T141009_2x2.gpkg'
-bounding_box_path = '/media/laserglaciers/upernavik/segment-anything/prediction_geoms/kanger/20170710T141009/20170710T141009_2x2_geoms_bounding_box.gpkg'
+
 joined_path = '/media/laserglaciers/upernavik/segment-anything/prediction_geoms/kanger/20170710T141009/20170710T141009_2x2_joined.gpkg'
 s2_path_2 = '/media/laserglaciers/upernavik/sentinel_2/kanger/S2B_MSIL1C_20170710T141009_N0205_R053_T25WER_20170710T141004.tif'
 
 
-mbergs_dict = '/media/laserglaciers/upernavik/iceberg_py/mbergs.pickle'
+mbergs_dict = '/media/laserglaciers/upernavik/iceberg_py/outfiles/kanger/berg_model/20170710T141009_bergs.pkl'
 # ctd_path = '/media/laserglaciers/upernavik/ghawk_2023/mar2010_ctd_geom_helheim_fjord_3413.gpkg'
 
 
@@ -35,16 +35,21 @@ mbergs_dict = '/media/laserglaciers/upernavik/iceberg_py/mbergs.pickle'
 
 convex_hull_df2 = gpd.read_file(joined_path)
 convex_hull_df2['max_dim'] = np.maximum(convex_hull_df2.height,convex_hull_df2.width)
-#
 
+
+
+
+m2km = lambda x, _: f'{x/1000:g}'
 
 bins = np.arange(0,1450,50) # lengths for this example and bins
 labels = np.arange(50,1450,50) # lengths for this example and bins
+keel_labels = np.arange(20,520,20)
+keel_bins = np.arange(0,520,20)
 
 convex_hull_df2['binned'] = gpd.pd.cut(convex_hull_df2['max_dim'],bins=bins,labels=labels)
 
 with open(mbergs_dict, 'rb') as src:
-    mbergs = pickle.load(src)
+    mbergs = gpd.pd.read_pickle(src)
 
 keel_dict = {}
 for length in labels:
@@ -53,6 +58,7 @@ for length in labels:
     keel_dict[length] = k.data[0]
 
 convex_hull_df2['keel_depth'] = convex_hull_df2['binned'].map(keel_dict)
+convex_hull_df2['keel_binned'] = gpd.pd.cut(convex_hull_df2['keel_depth'],bins=keel_bins,labels=keel_labels)
 # convex_hull_df2.dropna(inplace=True)
 fig, ax = plt.subplots(figsize=(16.77,8.86))
 
@@ -74,7 +80,9 @@ with rasterio.open(s2_path) as src:
     show(rgb_r, transform=src.transform, ax=ax)
     
 
-
+ax.yaxis.set_major_locator(ticker.MultipleLocator(10e3))
+ax.xaxis.set_major_formatter(m2km)
+ax.yaxis.set_major_formatter(m2km)
 
 
 
@@ -90,25 +98,43 @@ k_max = 485.76918830202516
 cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin = k_min,vmax = k_max), cmap=cmap),
               cax=cax,label='Keel Depth (m)')
 
-cbar.set_label(label='Keel Depth (m)',fontsize=20)
+cbar.set_label(label='Keel Depth (m)',fontsize=20, labelpad=15)
 ax.tick_params(axis='both', which='major', labelsize=20,pad=15)
 cbar.ax.tick_params(labelsize=20)
 
 # ext = [src.bounds[0],src.bounds[2], src.bounds[1], src.bounds[3]]
 convex_hull_df2.plot(ax=ax,column='keel_depth',cmap=cmap)
-convex_hull_df2['binned'].value_counts().sort_index().plot(kind='barh',logx=True,ax=axright,
+convex_hull_df2['keel_binned'].value_counts().sort_index().plot(kind='barh',logx=True,ax=axright,
                                                            edgecolor = 'k',zorder=2)
 
+
+axright.set(ylabel=None)
 axright.yaxis.tick_right()
 # axright.yaxis.set_ticks(np.arange(50, 1450, 200))
+
+
 ticks = axright.yaxis.get_ticklocs()
 ticklabels = [l.get_text() for l in axright.yaxis.get_ticklabels()]
 axright.set_yticks(ticks[1::2])
 axright.yaxis.set_ticklabels(ticklabels[1::2])
 axright.tick_params(axis='both', which='major', labelsize=20)
+axright.set_xlim(0, 1000)
+
+ticks_x = axright.xaxis.get_ticklocs()
+ticklabels_x = [l.get_text() for l in axright.xaxis.get_ticklabels()]
+axright.set_xticks(ticks_x[2::3])
+axright.xaxis.set_ticklabels(ticklabels_x[2::3])
+
 ax.set_ylim(-2.317e6, -2.28e6)
 ax.set_xlim(4.7e5,5.3e5)
 axright.axhspan(4,28,facecolor='0.6',alpha=0.3, zorder=1)
 
-op = '/media/laserglaciers/upernavik/agu_2023/figs/'
+text_dict = {'fontsize':20,
+             'fontweight': 'bold'}
+text_label = ax.text(.01, .99, 'd', ha='left', va='top', transform=ax.transAxes, **text_dict)
+
+text_label.set_bbox(dict(facecolor='white', alpha=0.6, linewidth=0))
+
+op = '/media/laserglaciers/upernavik/iceberg_py/figs/'
 # fig.savefig(f'{op}kanger_20170710T141009.png',dpi=300,transparent=False)
+fig.savefig(f'{op}kanger_20170710T141009.pdf',dpi=300,transparent=False, bbox_inches='tight')

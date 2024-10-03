@@ -42,6 +42,7 @@ keel_bins = np.arange(0,520,20)
 
 convex_hull_df2['binned'] = gpd.pd.cut(convex_hull_df2['max_dim'],bins=bins,labels=labels)
 
+m2km = lambda x, _: f'{x/1000:g}'
 
 
 with open(mbergs_dict, 'rb') as src:
@@ -86,6 +87,12 @@ with rasterio.open(s2_path) as src:
 
 ax.set_xlim((3.0e5, 3.35e5))
 ax.set_ylim((-2.59e6, -2.57e6))
+ax.yaxis.set_major_locator(ticker.MultipleLocator(5e3))
+
+ax.xaxis.set_major_formatter(m2km)
+ax.yaxis.set_major_formatter(m2km)
+
+
 
 cmap = plt.get_cmap('viridis').copy()
 divider = make_axes_locatable(ax) #ax for distribution plot and cbar
@@ -99,23 +106,49 @@ k_max = convex_hull_df2['keel_depth'].max()
 cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin = k_min,vmax = k_max), cmap=cmap),
               cax=cax,label='Keel Depth (m)')
 
-cbar.set_label(label='Keel Depth (m)',fontsize=20)
+cbar.set_label(label='Keel Depth (m)',fontsize=20, labelpad=15)
 ax.tick_params(axis='both', which='major', labelsize=20,pad=15)
 cbar.ax.tick_params(labelsize=20)
 
 # ext = [src.bounds[0],src.bounds[2], src.bounds[1], src.bounds[3]]
 convex_hull_df2.plot(ax=ax,column='keel_depth',cmap=cmap)
 convex_hull_df2['keel_binned'].value_counts().sort_index().plot(kind='barh',logx=True,ax=axright,
-                                                           edgecolor = 'k',zorder=2)
+                                                           edgecolor = 'k',zorder=2,label=None)
 
+
+axright.set(ylabel=None)
 axright.yaxis.tick_right()
 # # axright.yaxis.set_ticks(np.arange(50, 1450, 200))
+
 ticks = axright.yaxis.get_ticklocs()
 ticklabels = [l.get_text() for l in axright.yaxis.get_ticklabels()]
 axright.set_yticks(ticks[1::2])
 axright.yaxis.set_ticklabels(ticklabels[1::2])
 axright.tick_params(axis='both', which='major', labelsize=20)
+axright.set_xlim(0, 1000)
+
+ticks_x = axright.xaxis.get_ticklocs()
+ticklabels_x = [l.get_text() for l in axright.xaxis.get_ticklabels()]
+axright.set_xticks(ticks_x[2::3])
+axright.xaxis.set_ticklabels(ticklabels_x[2::3])
+
+
+
+axright.tick_params(axis='both', which='major', labelsize=20)
 axright.axhspan(5.5,28,facecolor='0.6',alpha=0.3, zorder=1)
 
-op = '/media/laserglaciers/upernavik/agu_2023/figs/'
+text_dict = {'fontsize':20,
+             'fontweight': 'bold'}
+text_label = ax.text(.01, .99, 'e', ha='left', va='top', transform=ax.transAxes, **text_dict)
+
+text_label.set_bbox(dict(facecolor='white', alpha=0.6, linewidth=0))
+
+ax.set_xlabel('Easting (km)', size=20, )
+
+
+
+op = '/media/laserglaciers/upernavik/iceberg_py/figs/'
 # fig.savefig(f'{op}helheim_20230727T193820.png',dpi=300,transparent=False)
+
+fig.savefig(f'{op}helheim_20230727T193820.pdf', dpi=300, transparent=False,  bbox_inches='tight')
+

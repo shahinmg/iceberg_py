@@ -16,7 +16,7 @@ from matplotlib import cm,colors
 import pickle
 import geopandas as gpd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
+import os
 #NOTE THIS SEPT23 IS ME TESTING TO SEE IF I DID A WRONG NANMEAN ISTEAD OF A NANSUM
 
 # set up initial surface lengths and depth intervals
@@ -64,7 +64,7 @@ u_rel_tf_zip = list(zip(u_rel_tests, tf_test))
 
 for u_rel, constant_tf in u_rel_tf_zip:
 
-    factor = 1 # 4 is from Jackson et al 2020 to increase transfer coeffs
+    factor = 4 # 4 is from Jackson et al 2020 to increase transfer coeffs
     use_constant_tf = True
     do_constantUrel = True
     # constant_tf = 6.6788244 # from Slater 2022 nature geoscience
@@ -225,6 +225,27 @@ for u_rel, constant_tf in u_rel_tf_zip:
     
     total_v = np.sum(list(vol_dict.values()))
     
+    
+    i_mtotalm_totals_dict = {}
+    Mtotal_totals_dict = {}
+
+    for length in L:
+        
+        count = vc[length]
+        
+        berg = mberg_dict[length]
+        i_mtotalm_totals_dict[length] = berg.i_mtotalm.data * count
+        
+        Mtotal_totals_dict[length] = berg.Mtotal.mean() * count
+        
+        # print(f'{length}: {Qib_sum*count}')
+        
+    i_mtotalm_total = np.nansum(list(i_mtotalm_totals_dict.values()))
+    Mtotal_total = np.nansum(list(Mtotal_totals_dict.values()))
+
+    
+    
+    
     vc_test = vc.copy()
     for l in vc_test.keys():
         if vc_test[l] == 0:
@@ -255,7 +276,10 @@ for u_rel, constant_tf in u_rel_tf_zip:
                           'Qib_percentage_high': (Qib_percentage_high),
                           'Qib_percentage_low': (Qib_percentage_low),
                           'ice_vol': (total_v),
-                          'average_aww_temp': (aww_temp)
+                          'average_aww_temp': (aww_temp),
+                          'melt_rate_avg': (i_mtotalm_total),
+                          'melt_rate_intergrated': (Mtotal_total),
+                          
                           }
         )
     
@@ -274,7 +298,16 @@ for u_rel, constant_tf in u_rel_tf_zip:
     Q_ib_ds.average_aww_temp.attrs = {'description': 'Average water temp below the Aww boundary',
                              'Units': 'C'}
     
-    op = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib/coeff_4/'
+    Q_ib_ds.melt_rate_avg.attrs = {'description': 'mean over all time, depths, processes for all iceberg classes and all number of icebergs in given iceberg distribution',
+                             'Units': 'm/day'}
+    Q_ib_ds.melt_rate_intergrated.attrs = {'description': ' average total volume FW for each time step for all iceberg classes and all number of icebergs in given iceberg distribution ',
+                             'Units': 'm^3/s'}
+    
+    
+    op = f'/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib/coeff_{factor}_melt_rates/'
+    if not os.path.exists(op):
+        os.makedirs(op)
+    
     Q_ib_ds.to_netcdf(f'{op}20230727T142031_high_helheim_coeff_{factor}_constant_tf_{constant_tf}_constant_UREL_{u_rel}.nc')
     
 

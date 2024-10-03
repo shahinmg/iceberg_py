@@ -4,3 +4,11 @@ infiles/
 figs/
 outfiles/
 *.png
+*.pdf
+*.gpkg
+*.pkl
+*.mat
+*.tif
+bed_for_slater
+*.nc
+sam/stac_nc/

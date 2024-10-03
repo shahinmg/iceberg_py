@@ -19,7 +19,7 @@ import pickle
 s2_path = '/media/laserglaciers/upernavik/sentinel_2/helheim/S2A_MSIL1C_20230727T142031_N0509_R096_T24WWU_20230727T193820.tif'
 convex_hull_path = '/media/laserglaciers/upernavik/segment-anything/prediction_geoms/helheim/20230727T142031/20230727T142031_merged_v2.gpkg'
 bounding_box_path = '/media/laserglaciers/upernavik/segment-anything/prediction_geoms/helheim/20230727T142031/20230727T142031_merged_bounding_box.gpkg'
-mbergs_dict = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/berg_model/20230727T142031_bergs.pkl'
+mbergs_dict = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/berg_model/20230727T142031_bergs_v2.pkl'
 ctd_path = '/media/laserglaciers/upernavik/ghawk_2023/mar2010_ctd_geom_helheim_fjord_3413.gpkg'
 qgis_join_path = '/media/laserglaciers/upernavik/segment-anything/prediction_geoms/helheim/20230727T142031/20230727T142031_merged_qgis_joined.gpkg'
 

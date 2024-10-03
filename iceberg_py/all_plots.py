@@ -50,7 +50,7 @@ L = np.arange(50,1450,50)
 dz = 5
 
 
-mbergs_dict_path = '/media/laserglaciers/upernavik/iceberg_py/mbergs.pickle'
+mbergs_dict_path = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/berg_model/2024-08-22_urel0.05_TF6.67_bergs_coeff4_v2.pkl'
 with open(mbergs_dict_path, 'rb') as src:
     mberg_dict = pickle.load(src)
 
@@ -178,7 +178,7 @@ cax = divider.append_axes("right", size="5%", pad=0.1)
 
 for i,length in enumerate(Qib_dict):
 
-    x = Qib_dict[length].data / 1e9 #gigawatts
+    x = Qib_dict[length].data #/ 1e9 #gigawatts
     y = Qib_dict[length].Z.data
     ax2.plot(x, y, c='black', lw=5)
     ax2.plot(x,y,color=colors_blues[i],lw=3)
@@ -266,14 +266,14 @@ ax4.set_xlabel('Aww Submerged Area (km$^{2}$)',fontsize=15)
 ax4.set_ylabel('Q$_{ice}$',fontsize=15)
 
 
-gdf_pkl_path = '/media/laserglaciers/upernavik/iceberg_py/convex_hull_icebergs.pkl'
-with open(gdf_pkl_path, 'rb') as src:
-    icebergs_gdf = pickle.load(src)
+# gdf_pkl_path = '/media/laserglaciers/upernavik/iceberg_py/convex_hull_icebergs.pkl'
+# with open(gdf_pkl_path, 'rb') as src:
+#     icebergs_gdf = pickle.load(src)
     
-vc = icebergs_gdf['binned'].value_counts()
+# vc = icebergs_gdf['binned'].value_counts()
 
-qice_df['count'] = gpd.pd.Series(vc)
-qice_df['total'] = qice_df['q_ice'] * qice_df['count']
+# qice_df['count'] = gpd.pd.Series(vc)
+# qice_df['total'] = qice_df['q_ice'] * qice_df['count']
     
     
     

@@ -10,14 +10,21 @@ import rasterio
 from rasterio.merge import merge
 from rasterio.plot import show
 import os
+import geopandas as gpd
 
-
-root_path = '/media/laserglaciers/upernavik/iceberg_py/ec2_transfer/helheim/'
+root_path = '/media/laserglaciers/upernavik/iceberg_py/sam/upvk/'
 dir_list = [d for d in os.listdir(root_path)][1:]
+poly_path = '/media/laserglaciers/upernavik/iceberg_py/geoms/upernavik//melange_outline.gpkg'
+gdf = gpd.read_file(poly_path)
+geom = gdf.geometry
+
 
 for folder in dir_list:
-    dirpath = f'/media/laserglaciers/upernavik/iceberg_py/ec2_transfer/helheim/{folder}/'
-    op = f'/media/laserglaciers/upernavik/iceberg_py/ec2_transfer/helheim/{folder}/'
+    dirpath = f'/media/laserglaciers/upernavik/iceberg_py/sam/upvk/{folder}/'
+    op =  f'/media/laserglaciers/upernavik/iceberg_py/sam/upvk/mosiacs/'
+    if not os.path.exists(op):
+        os.makedirs(op)
+        
     
     
     tifs = [tif for tif in os.listdir(dirpath) if tif.endswith('tif')]
@@ -41,8 +48,7 @@ for folder in dir_list:
     out_meta.update({"driver": "GTiff",
                      "height": mosaic.shape[1],
                      "width": mosaic.shape[2],
-                     "transform": out_trans,
-                     "crs": 32624
+                     "transform": out_trans
                      }
                 )
     

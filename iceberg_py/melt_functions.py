@@ -556,7 +556,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_
                           }):
 
     # script to initialize icebergs and melt them through time, also roll them
-    # if they fail weeks/mellor stability criterion
+    # if they fail weeks/melt or stability criterion
     #
     # INPUT: 
     # L = iceberg length(s) in m
@@ -575,7 +575,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_
     # OUTPUT:
     # out = structure containing all output--see cell below
     #
-    # NOTE: some parts of code not working yet: rolling and slab breakoff
+    # NOTE: some parts of code not working yet: slab breakoff
     
     # Idk the best way to go about creating the melt outputs. might put into list, dict, or pd dataframe?
     
@@ -946,6 +946,8 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_
                                                                         
     
     i_mtotalm = np.nanmean(mw) + np.nanmean(mb) + np.nanmean(ms) + np.nanmean(ma) + np.nanmean(mtw) # mean over all time, depths, processes  in m/day
+    # i_mtotalsum = np.nansum(mw) + np.nansum(mb) + np.nansum(ms) + np.nansum(ma) + np.nansum(mtw) # sum over all time, depths, processes  in m/day
+
     
     # set up output
     

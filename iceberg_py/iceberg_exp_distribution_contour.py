@@ -60,7 +60,7 @@ for i,temp in enumerate(np.linspace(start_temp, end_temp, total_num)): # get ran
     ctd_ds.temp.data = avg_temp
    
     for j, mean_dist in enumerate(np.linspace(min_dist,max_dist,total_num)): # use sythetic iceberg distributions
-        exp_test = np.random.exponential(scale=df_mean+mean_dist,size=n)
+        exp_test = np.random.exponential(scale=df_mean+mean_dist, size=n)
         exp_bins = pd.cut(exp_test,bins=bins,labels=labels)
         
         Qib_dict = {}

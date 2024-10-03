@@ -41,33 +41,40 @@ if __name__ == '__main__':
     client = dask.distributed.Client()
     configure_rio(cloud_defaults=True, client=client)
     
-    with open('/opt/atlas/iceberg_segment/pkls/jkb_image_item_list.pkl', 'rb') as f:
-        helheim_stack_list = pickle.load(f)
+    # with open('/opt/atlas/iceberg_segment/pkls/jkb_image_item_list.pkl', 'rb') as f:
+    #     helheim_stack_list = pickle.load(f)
     
-    grid_path = '/opt/atlas/iceberg_segment/jkb/geoms/melange_3x8_grid_UTM22N.gpkg'
+    # grid_path = '/opt/atlas/iceberg_segment/jkb/geoms/melange_3x8_grid_UTM22N.gpkg'
+    # grid = gpd.read_file(grid_path)
+    
+    
+    # resolution = 10
+    # SHRINK = 1
+    # if client.cluster.workers[0].memory_manager.memory_limit < dask.utils.parse_bytes("4G"):
+    #     SHRINK = 8  # running on Binder with 2Gb RAM
+    
+    # if SHRINK > 1:
+    #     resolution = resolution * SHRINK
+    
+    
+    # image_stac = stac_load(
+    #     helheim_stack_list,
+    #     bands=["red", "green", "blue"],
+    #     resolution=resolution,
+    #     chunks={"x": 2048, "y": 2048},
+    #     patch_url=pc.sign,
+    #     # force dtype and nodata
+    #     dtype="uint16",
+    #     nodata=0,
+    #     geopolygon=grid
+    # )
+    
+    grid_path = '/opt/atlas/iceberg_segment/upvk/geoms/upvk_3x8_grid_utm22N_v2.gpkg'
     grid = gpd.read_file(grid_path)
     
-    
-    resolution = 10
-    SHRINK = 1
-    if client.cluster.workers[0].memory_manager.memory_limit < dask.utils.parse_bytes("4G"):
-        SHRINK = 8  # running on Binder with 2Gb RAM
-    
-    if SHRINK > 1:
-        resolution = resolution * SHRINK
-    
-    
-    image_stac = stac_load(
-        helheim_stack_list,
-        bands=["red", "green", "blue"],
-        resolution=resolution,
-        chunks={"x": 2048, "y": 2048},
-        patch_url=pc.sign,
-        # force dtype and nodata
-        dtype="uint16",
-        nodata=0,
-        geopolygon=grid
-    )
+    image_stac_nc = '/media/laserglaciers/upernavik/iceberg_py/sam/stac_nc/jkb_netcdf.nc'
+    image_stac = xr.open_dataset(image_stac_nc)
+    image_stac = image_stac.isel(time=slice(1,None))
     
     affine = image_stac.red.isel(time=0).odc.affine
     height, width = image_stac.red.isel(time=0).shape
