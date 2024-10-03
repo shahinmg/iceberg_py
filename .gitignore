@@ -12,3 +12,4 @@ outfiles/
 bed_for_slater
 *.nc
 sam/stac_nc/
+*.xml
