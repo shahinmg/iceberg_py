@@ -35,7 +35,7 @@ gdf_list = sorted([gdf for gdf in os.listdir(gdf_pkl_path) if gdf.endswith('gpkg
 os.chdir(gdf_pkl_path)
 
 
-for berg_file in [gdf_list[-2]]:
+for berg_file in gdf_list:
     
     date_str = berg_file[:10]
     op_berg_model = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/berg_model/'
@@ -186,6 +186,8 @@ for berg_file in [gdf_list[-2]]:
         
         # Heat flux figure per layer per size of iceberg
         Qib_dict = {}
+        total_melt_dict = {}
+        
         for length in L:
             berg = mberg_dict[length]
             k = berg.KEEL.sel(time=86400*2)
@@ -200,35 +202,30 @@ for berg_file in [gdf_list[-2]]:
             
             
             Qib_dict[length] = Qib
-        
+            total_melt_dict[length] = total_iceberg_melt
         
         
     
         icebergs_gdf = gpd.read_file(berg_file)
         
         vc = icebergs_gdf['binned'].value_counts()
-        fig3, ax3 = plt.subplots()     
-        icebergs_gdf['binned'].value_counts().sort_index().plot(kind='bar',logy=True,ax=ax3,
-                                                                edgecolor = 'k')
-        # # ax3.hist(icebergs_gdf['max_dim'].values, bins=np.arange(0,1050,50),
-        # #          edgecolor = "black")
-        # ax3.set_ylabel('Count')
-        # ax3.set_xlabel('Iceberg surface length (m)')
-        
         
         Qib_totals = {}
-        Qib_sums = {}
+        total_iceberg_melt_totals = {} #underwater melt
         for length in L:
             
             if np.isin(length,vc.index):
                 count = vc[length]
                 Qib_sum = np.nansum(Qib_dict[length].sel(Z=slice(Aww_depth,None)))
-                Qib_totals[length] = Qib_sum * count
-                Qib_sums[length] = Qib_sum
-                print(f'{length}: {Qib_sum*count}')
+                melt_sum =  np.nansum(total_melt_dict[length].sel(Z=slice(None,None))) # Total melt not just AW
                 
-        qib_total=np.nansum(list(Qib_totals.values()))
-            
+                Qib_totals[length] = Qib_sum * count
+                total_iceberg_melt_totals[length] = melt_sum * count
+                
+                # print(f'{length}: {Qib_sum*count}')
+                
+        qib_total = np.nansum(list(Qib_totals.values()))
+        entire_total_melt = np.nansum(list(total_iceberg_melt_totals.values()))
             
         
         vol_dict = {}
@@ -263,24 +260,6 @@ for berg_file in [gdf_list[-2]]:
         Mtotal_total = np.nansum(list(Mtotal_totals_dict.values()))
     
         
-        
-        
-        vc_test = vc.copy()
-        for l in vc_test.keys():
-            if vc_test[l] == 0:
-                vc_test[l] = 1
-                
-        # take -50%, -25%, +25%, +50%
-        # low_vc =  np.round(vc_test.values - (vc_test.values*0.5))
-        # med_low_vc = np.round(vc_test.values - (vc_test.values*0.25))
-        # med_high_vc = np.round(vc_test.values + (vc_test.values*0.25))
-        # high_vc = np.round(vc_test.values + (vc_test.values*0.5))
-        # very_high_vc = np.round(vc_test.values + (vc_test.values*1))
-        # very_very_high_vc = np.round(vc_test.values + (vc_test.values*2))
-        
-        
-        Qaww_high = 3e11  # from Ken's model (W)
-        Qaww_low = 51e9 # from Sutherland and Straneo 2012 
     
         date = gpd.pd.to_datetime(date_str)
         aww_temp = np.mean(ctd_ds.temp.sel(tZ=slice(Aww_depth,None))).data
@@ -292,7 +271,7 @@ for berg_file in [gdf_list[-2]]:
                               'ice_vol': (total_v),
                               'average_aww_temp': (aww_temp),
                               'melt_rate_avg': (i_mtotalm_total),
-                              'melt_rate_intergrated': (Mtotal_total),
+                              'melt_rate_intergrated': (entire_total_melt),
                               
                               }
             )
@@ -311,7 +290,7 @@ for berg_file in [gdf_list[-2]]:
         
         urel_str = str(u_rel).split('.')[1]
         
-        op = f'/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib/{date_str}/u_rel_{urel_str}_factor{factor}_melt_rates/'
+        op = f'/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib_melt_flux_v2/coeff_{factor}/'
         if not os.path.exists(op):
             os.makedirs(op)
         

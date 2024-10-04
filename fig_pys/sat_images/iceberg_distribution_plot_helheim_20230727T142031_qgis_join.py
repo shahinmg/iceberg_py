@@ -95,7 +95,7 @@ convex_hull_df2.plot(ax=ax,column='keel_depth',cmap=cmap)
 # with open(op,'wb') as handle:
 #     pickle.dump(convex_hull_df2, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-# op_df = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/20230727T142031_icebergs_helheim.gpkg'
-# convex_hull_df_out = convex_hull_df2.drop(['binned'],axis=1)
-# convex_hull_df_out['keel_depth'] = convex_hull_df_out.keel_depth.to_numpy()
-# convex_hull_df_out.to_file(op_df,driver='GPKG',crs='epsg:3413')
+op_df = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/2023-07-27-icebergs_helheim_keel_depth.gpkg'
+convex_hull_df_out = convex_hull_df2
+convex_hull_df_out['keel_depth'] = convex_hull_df_out.keel_depth.to_numpy()
+convex_hull_df_out.to_file(op_df, driver='GPKG')

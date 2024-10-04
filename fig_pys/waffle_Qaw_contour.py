@@ -29,7 +29,7 @@ fig, ax = plt.subplots(1,2, figsize=(14,4))
 
 #%%
 
-helheim_urel_05_path = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib/u_rel_05_factor4_melt_rates/'
+helheim_urel_05_path = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib_melt_flux_v2/coeff_4_urel05/'
 
 nc_list = [nc for nc in os.listdir(helheim_urel_05_path) if nc.endswith('nc')]
 os.chdir(helheim_urel_05_path)
@@ -40,7 +40,10 @@ dt = 50
 psw = 1024 #kg m3
 csw = 3974 #J kg-1 C-1
 day2sec = 86400
-Volume_test = 28e3 * 5e3 * 300 #km3 Helheim Fjord test
+# Volume_test = 28e3 * 5e3 * 300 #km3 Helheim Fjord test #148461041 area from polygon
+Volume_test = 148461041 * 300 #km3 Helheim Fjord test #148461041 area from polygon
+
+
 # constant_tf_55 = 5.73 # from Slater 2022 nature geoscience
 constant_tf_67 = 6.67 # from Slater 2022 nature geoscience
 # constant_tf_8 = 7.62 # from Slater 2022 nature geoscience
@@ -59,7 +62,7 @@ for i,nc in enumerate(nc_list):
 Qib_percs_c4 = Qib_array_c4/Qaw_HEL_67
 
 #%%
-helheim_urel_05_c1_path = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib/u_rel_05_factor1_melt_rates/'
+helheim_urel_05_c1_path = '/media/laserglaciers/upernavik/iceberg_py/outfiles/helheim/Qib_melt_flux_v2/coeff_1_urel05/'
 
 nc_list_c1 = [nc for nc in os.listdir(helheim_urel_05_c1_path) if nc.endswith('nc')]
 os.chdir(helheim_urel_05_c1_path)
@@ -229,6 +232,7 @@ text_label.set_bbox(dict(facecolor='white', alpha=0.6, linewidth=0))
 
 op = '/media/laserglaciers/upernavik/iceberg_py/figs/'
 fig.savefig(f'{op}Helheim_fjord_waffle_plot_Qaw_parameter_space.pdf', dpi=300, transparent=True, bbox_inches='tight')
+fig.savefig(f'{op}Helheim_fjord_waffle_plot_Qaw_parameter_space.png', dpi=300, transparent=False, bbox_inches='tight')
 
 
 
