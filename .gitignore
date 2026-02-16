@@ -24,3 +24,7 @@ data/*
 # Ignore Jupyter notebook checkpoints
 .ipynb_checkpoints/
 .virtual_documents/
+
+# Python temp files
+__pycache__/
+*.pyc
