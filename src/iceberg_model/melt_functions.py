@@ -49,7 +49,7 @@ def melt_solar(solar_rad):
     # % - note assumes iceberg albedo is 0.7
     # % 
 
-    latent_heat = 3.33e5 #J/kg
+    latent_heat = 3.35e5 #J/kg
     rho_i = 917 #kg/m3
     albedo = 0.7
     absorbed = 1 - albedo # percentage absorbed
@@ -128,7 +128,7 @@ def melt_forcedwater(temp_far, salinity_far, pressure_base, U_rel, factor, use_c
 def melt_forcedair(T_air, U_rel, L):
     
     T_ice = -4 # ice temperature
-    Li = 3.33e5 # latent heat of fusion in ice J/kg
+    Li = 3.35e5 # latent heat of fusion in ice J/kg
     rho_i = 917 # density of ice
     air_viscosity = 1.46e-5 # kinematic viscosity of air m2/s idk at what temperature around 15 c
     air_diffusivity = 2.16e-5 # thermal diffusivity of air m2/s
@@ -365,7 +365,9 @@ def barker_carea(L, keel_depth, dz, LWratio=1.62, tabular=200, method='barker'):
             # kza = ceil(kz,dz) # layer index for keel depth
             
             for nl in range(int(kza)):
-                temp[nl,i] = a[nl] * L[K_ltab[i]] + b[nl]
+                temp_val = a[nl] * L[K_ltab[i]] + b[nl]
+                temp_val = temp_val[0]
+                temp[nl,i] = temp_val
                 
         temps[K_ltab] = a_s * L[K_ltab] + b_s
         
@@ -964,7 +966,7 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_
     iceberg['Mturba'] = xr.DataArray(data=Mturba, name='Mturba', coords = {"time":t},  dims=["X","time"],attrs={'Description':"Integrated Forced convection in air, based on Condron's mitberg formulation",
                                                                                                                  'Units': 'm3/s'})
     
-    iceberg['Mfreew'] = xr.DataArray(data=Mturbw, name='Mfreew', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"], attrs={'Description':"Integrated buoyant convection along sidewalls in water, based on bigg (condron)",
+    iceberg['Mfreew'] = xr.DataArray(data=Mfreew, name='Mfreew', coords = {"time":t,"Z":ice_init[0].Z.values},  dims=["Z","X","time"], attrs={'Description':"Integrated buoyant convection along sidewalls in water, based on bigg (condron)",
                                                                                                                  'Units': 'm3/s'})
     
     iceberg['Mtotal'] = xr.DataArray(data=Mtotal, name='Mtotal', coords = {"time":t},  dims=["X","time"], attrs={'Description':"total volume FW for each time step",
