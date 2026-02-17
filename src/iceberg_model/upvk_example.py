@@ -24,9 +24,9 @@ gdf_list = sorted([gdf for gdf in os.listdir(gdf_pkl_path) if gdf.endswith('gpkg
 out_dir = '../../data/'
 
 
-vel_dict = {'min': 0.02,
-            'avg': 0.07,
-            'max':0.15} #m/s
+vel_dict = {'min': 0.07,
+            'avg': 0.13,
+            'max':0.20} #m/s
 
 
 for berg_file in gdf_list:
@@ -95,10 +95,10 @@ for berg_file in gdf_list:
             mberg_dict[length] = mberg
         
         
-        l_heat = 3.34e5 #J kg
+        l_heat = 3.35e5 #J kg
         Aww_depth = 150
         Cp = 3980 # specific heat capactiy J/kgK
-        p_sw = 1027 # kg/m3
+        p_sw = 1024 # kg/m3
         p_fw = 1000 # freshwater density kg/m3
         
         # Heat flux figure per layer per size of iceberg
@@ -113,7 +113,7 @@ for berg_file in gdf_list:
             Mturbw = berg.Mturbw.sel(Z=slice(None,k.data[0]), time=86400*2)
             
             total_iceberg_melt = np.mean(Mfreew + Mturbw,
-                                         axis=1) # Not sure why I took mean here; Mfeew and Mturbw are integreated melt terms in m3/sec per layer face of iceberg
+                                         axis=1) # mean is not necessary
             
             Qib = total_iceberg_melt * l_heat * p_fw #iceberg heatflux per z layer; since these are integrated terms do not add area
             
@@ -122,7 +122,7 @@ for berg_file in gdf_list:
             total_melt_dict[length] = total_iceberg_melt
         
 
-        op_berg_model = f'{out_dir}iceberg_classes_output/{FJORD}/{run_type}/'
+        op_berg_model = f'{out_dir}iceberg_classes_output_melt_fix/{FJORD}/{run_type}/'
         if not os.path.exists(op_berg_model):
             os.makedirs(op_berg_model)
             
@@ -133,10 +133,9 @@ for berg_file in gdf_list:
             pickle.dump(mberg_dict, handle)
         
         
-        print(f'berg_file: {berg_file}')
         berg_path = f'{gdf_pkl_path}{berg_file}'
         icebergs_gdf = gpd.read_file(berg_path)
-        
+
         vc = icebergs_gdf['binned'].value_counts()
         
         Qib_totals = {}
@@ -145,8 +144,8 @@ for berg_file in gdf_list:
             
             if np.isin(length,vc.index):
                 count = vc[length]
-                Qib_sum = np.nansum(Qib_dict[length].sel(Z=slice(Aww_depth,None)))
-                melt_sum =  np.nansum(total_melt_dict[length].sel(Z=slice(Aww_depth,None))) # Total melt not just AW
+                Qib_sum = np.nansum(Qib_dict[length].sel(Z=slice(Aww_depth,None))) #TAKE THE AW 
+                melt_sum =  np.nansum(total_melt_dict[length].sel(Z=slice(Aww_depth,None))) 
                 
                 Qib_totals[length] = Qib_sum * count
                 total_iceberg_melt_totals[length] = melt_sum * count
@@ -200,7 +199,7 @@ for berg_file in gdf_list:
                               'ice_vol': (total_v),
                               'average_aww_temp': (aww_temp),
                               'melt_rate_avg': (i_mtotalm_total),
-                              'melt_rate_intergrated': (entire_total_melt),
+                              'melt_rate_integrated': (entire_total_melt),
                               
                               }
             )
@@ -214,12 +213,12 @@ for berg_file in gdf_list:
         
         Q_ib_ds.melt_rate_avg.attrs = {'description': 'mean over all time, depths, processes for all iceberg classes and all number of icebergs in given iceberg distribution',
                                  'Units': 'm/day'}
-        Q_ib_ds.melt_rate_intergrated.attrs = {'description': ' average total volume FW for each time step for all iceberg classes and all number of icebergs in given iceberg distribution ',
+        Q_ib_ds.melt_rate_integrated.attrs = {'description': ' average total volume FW for each time step for all iceberg classes and all number of icebergs in given iceberg distribution ',
                                  'Units': 'm^3/s'}
         
         urel_str = str(u_rel).split('.')[1]
         
-        op = f'{out_dir}iceberg_model_output/{FJORD}/{run_type}/'
+        op = f'{out_dir}iceberg_model_output_melt_fix/{FJORD}/{run_type}/'
         if not os.path.exists(op):
             os.makedirs(op)
         
