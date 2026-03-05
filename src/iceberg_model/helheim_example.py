@@ -11,7 +11,7 @@ import os
 L = np.arange(50,1450,50)
 dz = 5
 FJORD = 'helheim'
-run_type = 'min' # min, avg, max
+run_type = 'max' # min, avg, max
 
 # input data paths
 ctd_path = f'../../data/ctd_data/{run_type}_temp_sal_sermilik_fjord.csv'

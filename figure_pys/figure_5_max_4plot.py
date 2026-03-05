@@ -21,7 +21,7 @@ import types
 import os
 import string
 
-berg_model_path_1 = '../data/iceberg_classes_output_melt_fix/helheim/min/'
+berg_model_path_1 = '../data/iceberg_classes_output_melt_fix/helheim/max/'
 
 iceberg_geom_path = '../data/iceberg_geoms/helheim/'
 
@@ -35,7 +35,7 @@ def get_xr_das(model_list):
     # os.chdir(chdir)
     fig, ax = plt.subplots(1,3,sharey='row',figsize=(9, 7))
     
-    total_melt_list = [6, 6, 7, 14, 11] # come from Table s3
+    total_melt_list = [76, 80, 93, 171, 131] # come from Table s4
     
     for time_idx, berg_model_file in enumerate(model_list):
         
@@ -174,7 +174,7 @@ def get_xr_das(model_list):
         # ax[2].set_xlim(0.05e7,5e10)
         # ax[2].set_xscale('log')
         
-        ax[2].set_xlim(0, 0.07)
+        ax[2].set_xlim(0, 5)
         ax[2].xaxis.set_major_locator(MaxNLocator(4))
         ax[2].set_xlabel('Q$_{ib}$ per Unit Depth (GW/m)', size=labelsize)
         
@@ -185,8 +185,8 @@ def get_xr_das(model_list):
         
         if time_idx == 0:
             ax2_dupe = ax[2].twiny()
-            new_pos = [0.0, 0.02, 0.04, 0.06]
-            new_labels = [0.0, 0.06, 0.12, 0.18] # come from the commented out ax[3]
+            new_pos = [0.0, 1.5, 3.0, 4.5]
+            new_labels = [0.0, 4.5, 9.0, 13.5] # come from the commented out ax[3]
         
             ax2_dupe.set_xticks(new_pos)
             ax2_dupe.set_xticklabels(new_labels)
@@ -247,10 +247,11 @@ def get_xr_das(model_list):
             ax[0].set_ylim(600,0)
             # ax[0].set_xlim(0, 0.7)
             ax[0].set_xlabel('Melt Rate (m d$^{-1}$)', size=labelsize)
-            ax[0].axhspan(0,150,facecolor='tab:blue', zorder=2, alpha=0.1)
+            
             ax[0].xaxis.set_minor_locator(MultipleLocator(0.5))
             ax[0].set_ylabel('Depth (m)', size=labelsize)
-        
+            
+        ax[0].axhspan(0,150,facecolor='tab:blue', zorder=2, alpha=0.1)
     
         
     
@@ -265,7 +266,7 @@ def get_xr_das(model_list):
         # ax[3].axhspan(0,150,facecolor='tab:blue', zorder=2, alpha=0.1)
 
         # ax[3].set_xlabel('Melt per Unit Depth (m$^{2}$ s$^{-1}$)', size=labelsize)
-        # ax[3].set_xlim(0, 0.2)
+        # ax[3].set_xlim(0, 15)
         # ax[3].xaxis.set_major_locator(MaxNLocator(5))
     
     
@@ -292,8 +293,7 @@ def get_xr_das(model_list):
         if not os.path.exists(op):
             os.makedirs(op)
         # plt.subplots_adjust(right=0.2)
-        fig.savefig(f'{op}figure_s3.pdf', dpi=300, bbox_inches='tight')
-        # fig.savefig(f'{op}figure_s3.pdf', dpi=300, pad_inches=0.03)
+        fig.savefig(f'{op}figure_s4.pdf', dpi=300, bbox_inches='tight')
 
     return fig, ax
 

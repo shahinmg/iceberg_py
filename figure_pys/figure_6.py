@@ -12,6 +12,7 @@ from matplotlib.ticker import ScalarFormatter
 from matplotlib.patches import Ellipse
 from matplotlib import cm,colors
 import os
+import pandas as pd
 
 fig, ax1 = plt.subplots(1,1, figsize=(8,4))
 # Data for the bar plot
@@ -41,8 +42,13 @@ hbars = ax1.barh(categories, values_qib,
 
 
 # Custom labels 
-# perc_values = [6, 20]
-perc_values = [6, 18]
+df_50 = pd.read_csv('../data/csv/AVG_dt50.csv')
+df_150 = pd.read_csv('../data/csv/AVG_dt150.csv')
+
+df_50_perc = np.round(df_50['percentage'].astype(np.float64).mean())
+df_150_perc = np.round(df_150['percentage'].astype(np.float64).mean())
+
+perc_values = [f'{df_50_perc:.0f}', f'{df_150_perc:.0f}']
 latex_label = r'$Q_{ib}$/$Q_{aw}$'
 
 custom_labels = [f"{v}%" for v in perc_values]
@@ -68,4 +74,4 @@ if not os.path.exists(op):
     os.makedirs(op)
 
 plt.tight_layout()
-# plt.savefig(f'{op}heatbudget_bar_plot.pdf', dpi=300, transparent=True)
+plt.savefig(f'{op}figure_6.pdf', dpi=300, transparent=True)

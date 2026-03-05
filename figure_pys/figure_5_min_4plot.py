@@ -247,11 +247,11 @@ def get_xr_das(model_list):
             ax[0].set_ylim(600,0)
             # ax[0].set_xlim(0, 0.7)
             ax[0].set_xlabel('Melt Rate (m d$^{-1}$)', size=labelsize)
-            ax[0].axhspan(0,150,facecolor='tab:blue', zorder=2, alpha=0.1)
+        
             ax[0].xaxis.set_minor_locator(MultipleLocator(0.5))
             ax[0].set_ylabel('Depth (m)', size=labelsize)
         
-    
+        ax[0].axhspan(0,150,facecolor='tab:blue', zorder=2, alpha=0.1)
         
     
     
