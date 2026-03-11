@@ -17,10 +17,33 @@ dev/
 *.pth
 notebooks/stac_items/*
 !notebooks/stac_items/.gitignore
-
+files/*
 data/*
 !data/.gitignore
 
 # Ignore Jupyter notebook checkpoints
 .ipynb_checkpoints/
 .virtual_documents/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg

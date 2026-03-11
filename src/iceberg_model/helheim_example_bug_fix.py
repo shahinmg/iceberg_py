@@ -123,7 +123,7 @@ for berg_file in gdf_list:
             total_melt_dict[length] = total_iceberg_melt
         
 
-        op_berg_model = f'{out_dir}iceberg_classes_output_bug_fix/{FJORD}/{run_type}/'
+        op_berg_model = f'{out_dir}iceberg_classes_output_bug_fix_ctd/{FJORD}/{run_type}/'
         if not os.path.exists(op_berg_model):
             os.makedirs(op_berg_model)
             
@@ -136,6 +136,7 @@ for berg_file in gdf_list:
         
         berg_path = f'{gdf_pkl_path}{berg_file}'
         icebergs_gdf = gpd.read_file(berg_path)
+        # icebergs_gdf = gpd.read_file(berg_file)
         
         vc = icebergs_gdf['binned'].value_counts()
         
@@ -219,7 +220,7 @@ for berg_file in gdf_list:
         
         urel_str = str(u_rel).split('.')[1]
         
-        op = f'{out_dir}iceberg_model_output_bug_fix/{FJORD}/{run_type}/'
+        op = f'{out_dir}iceberg_model_output_bug_fix_ctd/{FJORD}/{run_type}/'
         if not os.path.exists(op):
             os.makedirs(op)
         

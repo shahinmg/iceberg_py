@@ -767,10 +767,10 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_
             if do_melt['turbw']:
                 # apply melt for each depth level of the iceberg
                 for k in range(keeli-1):
-                    T_far_func = interp1d(ctdz_flat,temp)
+                    T_far_func = interp1d(ctdz_flat,temp) # interp1(ctdz,temp,Z(k));
                     T_far = T_far_func(depth[k])
                     
-                    S_far_func = interp1d(ctdz_flat,salt)
+                    S_far_func = interp1d(ctdz_flat,salt) # interp1(ctdz,salt,Z(k));
                     S_far = S_far_func(depth[k])
                     
                     mtw[k,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[k],Urel[k,i,j],factor=factor,
@@ -779,19 +779,12 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_
                     mtw[k,i,j] = mtw[k,i,j] * dt
                     Mturbw[k,i,j] = 2 * (mtw[k,i,j] * dz * uwL[k]) + 1 * (mtw[k,i,j] * dz * uwW[k])
                 
-                # FIX: Interpolate T/S at keel depth instead of using stale values from loop
-                T_far_keel_func = interp1d(ctdz_flat, temp)
-                T_far_keel = T_far_keel_func(depth[keeli-1])
-                S_far_keel_func = interp1d(ctdz_flat, salt)
-                S_far_keel = S_far_keel_func(depth[keeli-1])
-                
-                mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far_keel, S_far_keel, depth[keeli-1],Urel[keeli-1,i,j],factor=factor,)
-                
                 # DEBUG logging for keel layer
                 if i == 0 and j == 1:
-                    print(f"DEBUG ORIGINAL FIXED: keeli={keeli}, depth[keeli-1]={depth[keeli-1]}, T_far={T_far_keel}, S_far={S_far_keel}")
+                    print(f"DEBUG ORIGINAL: keeli={keeli}, k_last={k}, depth[{k}]={depth[k]}, T_far={T_far}, S_far={S_far}")
+                    print(f"  depth[keeli-1]={depth[keeli-1]}")
                     
-                mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far_keel, S_far_keel, depth[keeli-1],Urel[keeli-1,i,j],factor=factor, 
+                mtw[keeli-1,i,j], T_sh, T_fp = melt_forcedwater(T_far, S_far, depth[keeli-1],Urel[keeli-1,i,j],factor=factor, 
                                                                 use_constant_tf = use_constant_tf, constant_tf=constant_tf)
                 mtw[keeli-1,i,j] = mtw[keeli-1,i,j] * dt # m/day
                 dz_keel = -1*((keeli-1) * dz - keel) # final layer depth
@@ -838,8 +831,6 @@ def iceberg_melt(L,dz,timespan,ctddata,IceConc,WindSpd,Tair,SWflx,Urelative, do_
                    #                       + 2 *(mb[keeli,i,j]) * dz * uwW[k])
                    Mfreew[k,i,j] =  2 * (mb[k,i,j] * dz * uwL[k][0]) + 2 *(mb[k,i,j] * dz * uwW[k])
                    
-                # NOTE: Original code uses mb[keeli-1] which is 0 (not calculated in loop)
-                # This effectively sets buoyant melt to 0 at keel layer - appears intentional
                 # dz_keel
                 dz_keel = -1 * ((keeli-1)) * dz - keel # not sure about keeli -1
                 Mfreew[keeli-1,i,j] = 2 * ((mb[keeli-1,i,j] * dz_keel * uwL[keeli-1])

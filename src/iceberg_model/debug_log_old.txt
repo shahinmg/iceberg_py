@@ -1,0 +1,504 @@
+Processing Length 50
+DEBUG ORIGINAL: keeli=10, k_last=8, depth[8]=[45], T_far=[-0.23574018], S_far=[32.20701301]
+  depth[keeli-1]=[50]
+Processing Length 100
+DEBUG ORIGINAL: keeli=16, k_last=14, depth[14]=[75], T_far=[0.6276042], S_far=[32.94416949]
+  depth[keeli-1]=[80]
+Processing Length 150
+DEBUG ORIGINAL: keeli=21, k_last=19, depth[19]=[100], T_far=[1.30771366], S_far=[33.3341601]
+  depth[keeli-1]=[105]
+Processing Length 200
+DEBUG ORIGINAL: keeli=26, k_last=24, depth[24]=[125], T_far=[1.68088778], S_far=[33.61106463]
+  depth[keeli-1]=[130]
+Processing Length 250
+DEBUG ORIGINAL: keeli=30, k_last=28, depth[28]=[145], T_far=[1.94118086], S_far=[33.79505742]
+  depth[keeli-1]=[150]
+Processing Length 300
+DEBUG ORIGINAL: keeli=34, k_last=32, depth[32]=[165], T_far=[2.18783979], S_far=[33.96969354]
+  depth[keeli-1]=[170]
+Processing Length 350
+DEBUG ORIGINAL: keeli=38, k_last=36, depth[36]=[185], T_far=[2.37652876], S_far=[34.11956557]
+  depth[keeli-1]=[190]
+Processing Length 400
+DEBUG ORIGINAL: keeli=41, k_last=39, depth[39]=[200], T_far=[2.50071855], S_far=[34.21360525]
+  depth[keeli-1]=[205]
+Processing Length 450
+DEBUG ORIGINAL: keeli=45, k_last=43, depth[43]=[220], T_far=[2.61776115], S_far=[34.30530504]
+  depth[keeli-1]=[225]
+Processing Length 500
+DEBUG ORIGINAL: keeli=48, k_last=46, depth[46]=[235], T_far=[2.72242542], S_far=[34.35639065]
+  depth[keeli-1]=[240]
+Processing Length 550
+DEBUG ORIGINAL: keeli=52, k_last=50, depth[50]=[255], T_far=[2.8205185], S_far=[34.40991099]
+  depth[keeli-1]=[260]
+Processing Length 600
+DEBUG ORIGINAL: keeli=55, k_last=53, depth[53]=[270], T_far=[2.87723331], S_far=[34.43843225]
+  depth[keeli-1]=[275]
+Processing Length 650
+DEBUG ORIGINAL: keeli=58, k_last=56, depth[56]=[285], T_far=[2.9323486], S_far=[34.46542622]
+  depth[keeli-1]=[290]
+Processing Length 700
+DEBUG ORIGINAL: keeli=61, k_last=59, depth[59]=[300], T_far=[3.00297494], S_far=[34.49005661]
+  depth[keeli-1]=[305]
+Processing Length 750
+DEBUG ORIGINAL: keeli=65, k_last=63, depth[63]=[320], T_far=[3.09937422], S_far=[34.51783312]
+  depth[keeli-1]=[325]
+Processing Length 800
+DEBUG ORIGINAL: keeli=68, k_last=66, depth[66]=[335], T_far=[3.1651946], S_far=[34.53558896]
+  depth[keeli-1]=[340]
+Processing Length 850
+DEBUG ORIGINAL: keeli=70, k_last=68, depth[68]=[345], T_far=[3.20388926], S_far=[34.54681349]
+  depth[keeli-1]=[350]
+Processing Length 900
+DEBUG ORIGINAL: keeli=73, k_last=71, depth[71]=[360], T_far=[3.26830475], S_far=[34.56252356]
+  depth[keeli-1]=[365]
+Processing Length 950
+DEBUG ORIGINAL: keeli=76, k_last=74, depth[74]=[375], T_far=[3.33739003], S_far=[34.57866197]
+  depth[keeli-1]=[380]
+Processing Length 1000
+DEBUG ORIGINAL: keeli=79, k_last=77, depth[77]=[390], T_far=[3.39594917], S_far=[34.59490368]
+  depth[keeli-1]=[395]
+Processing Length 1050
+DEBUG ORIGINAL: keeli=82, k_last=80, depth[80]=[405], T_far=[3.45187838], S_far=[34.61236737]
+  depth[keeli-1]=[410]
+Processing Length 1100
+DEBUG ORIGINAL: keeli=85, k_last=83, depth[83]=[420], T_far=[3.50711662], S_far=[34.62620293]
+  depth[keeli-1]=[425]
+Processing Length 1150
+DEBUG ORIGINAL: keeli=87, k_last=85, depth[85]=[430], T_far=[3.54694642], S_far=[34.63649389]
+  depth[keeli-1]=[435]
+Processing Length 1200
+DEBUG ORIGINAL: keeli=90, k_last=88, depth[88]=[445], T_far=[3.59765591], S_far=[34.64892106]
+  depth[keeli-1]=[450]
+Processing Length 1250
+DEBUG ORIGINAL: keeli=92, k_last=90, depth[90]=[455], T_far=[3.62181195], S_far=[34.65694988]
+  depth[keeli-1]=[460]
+Processing Length 1300
+DEBUG ORIGINAL: keeli=95, k_last=93, depth[93]=[470], T_far=[3.66290274], S_far=[34.66849521]
+  depth[keeli-1]=[475]
+Processing Length 1350
+DEBUG ORIGINAL: keeli=98, k_last=96, depth[96]=[485], T_far=[3.71652406], S_far=[34.68297203]
+  depth[keeli-1]=[490]
+Processing Length 1400
+DEBUG ORIGINAL: keeli=100, k_last=98, depth[98]=[495], T_far=[3.74795638], S_far=[34.690777]
+  depth[keeli-1]=[500]
+Processing Length 50
+DEBUG ORIGINAL: keeli=10, k_last=8, depth[8]=[45], T_far=[-0.23574018], S_far=[32.20701301]
+  depth[keeli-1]=[50]
+Processing Length 100
+DEBUG ORIGINAL: keeli=16, k_last=14, depth[14]=[75], T_far=[0.6276042], S_far=[32.94416949]
+  depth[keeli-1]=[80]
+Processing Length 150
+DEBUG ORIGINAL: keeli=21, k_last=19, depth[19]=[100], T_far=[1.30771366], S_far=[33.3341601]
+  depth[keeli-1]=[105]
+Processing Length 200
+DEBUG ORIGINAL: keeli=26, k_last=24, depth[24]=[125], T_far=[1.68088778], S_far=[33.61106463]
+  depth[keeli-1]=[130]
+Processing Length 250
+DEBUG ORIGINAL: keeli=30, k_last=28, depth[28]=[145], T_far=[1.94118086], S_far=[33.79505742]
+  depth[keeli-1]=[150]
+Processing Length 300
+DEBUG ORIGINAL: keeli=34, k_last=32, depth[32]=[165], T_far=[2.18783979], S_far=[33.96969354]
+  depth[keeli-1]=[170]
+Processing Length 350
+DEBUG ORIGINAL: keeli=38, k_last=36, depth[36]=[185], T_far=[2.37652876], S_far=[34.11956557]
+  depth[keeli-1]=[190]
+Processing Length 400
+DEBUG ORIGINAL: keeli=41, k_last=39, depth[39]=[200], T_far=[2.50071855], S_far=[34.21360525]
+  depth[keeli-1]=[205]
+Processing Length 450
+DEBUG ORIGINAL: keeli=45, k_last=43, depth[43]=[220], T_far=[2.61776115], S_far=[34.30530504]
+  depth[keeli-1]=[225]
+Processing Length 500
+DEBUG ORIGINAL: keeli=48, k_last=46, depth[46]=[235], T_far=[2.72242542], S_far=[34.35639065]
+  depth[keeli-1]=[240]
+Processing Length 550
+DEBUG ORIGINAL: keeli=52, k_last=50, depth[50]=[255], T_far=[2.8205185], S_far=[34.40991099]
+  depth[keeli-1]=[260]
+Processing Length 600
+DEBUG ORIGINAL: keeli=55, k_last=53, depth[53]=[270], T_far=[2.87723331], S_far=[34.43843225]
+  depth[keeli-1]=[275]
+Processing Length 650
+DEBUG ORIGINAL: keeli=58, k_last=56, depth[56]=[285], T_far=[2.9323486], S_far=[34.46542622]
+  depth[keeli-1]=[290]
+Processing Length 700
+DEBUG ORIGINAL: keeli=61, k_last=59, depth[59]=[300], T_far=[3.00297494], S_far=[34.49005661]
+  depth[keeli-1]=[305]
+Processing Length 750
+DEBUG ORIGINAL: keeli=65, k_last=63, depth[63]=[320], T_far=[3.09937422], S_far=[34.51783312]
+  depth[keeli-1]=[325]
+Processing Length 800
+DEBUG ORIGINAL: keeli=68, k_last=66, depth[66]=[335], T_far=[3.1651946], S_far=[34.53558896]
+  depth[keeli-1]=[340]
+Processing Length 850
+DEBUG ORIGINAL: keeli=70, k_last=68, depth[68]=[345], T_far=[3.20388926], S_far=[34.54681349]
+  depth[keeli-1]=[350]
+Processing Length 900
+DEBUG ORIGINAL: keeli=73, k_last=71, depth[71]=[360], T_far=[3.26830475], S_far=[34.56252356]
+  depth[keeli-1]=[365]
+Processing Length 950
+DEBUG ORIGINAL: keeli=76, k_last=74, depth[74]=[375], T_far=[3.33739003], S_far=[34.57866197]
+  depth[keeli-1]=[380]
+Processing Length 1000
+DEBUG ORIGINAL: keeli=79, k_last=77, depth[77]=[390], T_far=[3.39594917], S_far=[34.59490368]
+  depth[keeli-1]=[395]
+Processing Length 1050
+DEBUG ORIGINAL: keeli=82, k_last=80, depth[80]=[405], T_far=[3.45187838], S_far=[34.61236737]
+  depth[keeli-1]=[410]
+Processing Length 1100
+DEBUG ORIGINAL: keeli=85, k_last=83, depth[83]=[420], T_far=[3.50711662], S_far=[34.62620293]
+  depth[keeli-1]=[425]
+Processing Length 1150
+DEBUG ORIGINAL: keeli=87, k_last=85, depth[85]=[430], T_far=[3.54694642], S_far=[34.63649389]
+  depth[keeli-1]=[435]
+Processing Length 1200
+DEBUG ORIGINAL: keeli=90, k_last=88, depth[88]=[445], T_far=[3.59765591], S_far=[34.64892106]
+  depth[keeli-1]=[450]
+Processing Length 1250
+DEBUG ORIGINAL: keeli=92, k_last=90, depth[90]=[455], T_far=[3.62181195], S_far=[34.65694988]
+  depth[keeli-1]=[460]
+Processing Length 1300
+DEBUG ORIGINAL: keeli=95, k_last=93, depth[93]=[470], T_far=[3.66290274], S_far=[34.66849521]
+  depth[keeli-1]=[475]
+Processing Length 1350
+DEBUG ORIGINAL: keeli=98, k_last=96, depth[96]=[485], T_far=[3.71652406], S_far=[34.68297203]
+  depth[keeli-1]=[490]
+Processing Length 1400
+DEBUG ORIGINAL: keeli=100, k_last=98, depth[98]=[495], T_far=[3.74795638], S_far=[34.690777]
+  depth[keeli-1]=[500]
+Processing Length 50
+DEBUG ORIGINAL: keeli=10, k_last=8, depth[8]=[45], T_far=[-0.23574018], S_far=[32.20701301]
+  depth[keeli-1]=[50]
+Processing Length 100
+DEBUG ORIGINAL: keeli=16, k_last=14, depth[14]=[75], T_far=[0.6276042], S_far=[32.94416949]
+  depth[keeli-1]=[80]
+Processing Length 150
+DEBUG ORIGINAL: keeli=21, k_last=19, depth[19]=[100], T_far=[1.30771366], S_far=[33.3341601]
+  depth[keeli-1]=[105]
+Processing Length 200
+DEBUG ORIGINAL: keeli=26, k_last=24, depth[24]=[125], T_far=[1.68088778], S_far=[33.61106463]
+  depth[keeli-1]=[130]
+Processing Length 250
+DEBUG ORIGINAL: keeli=30, k_last=28, depth[28]=[145], T_far=[1.94118086], S_far=[33.79505742]
+  depth[keeli-1]=[150]
+Processing Length 300
+DEBUG ORIGINAL: keeli=34, k_last=32, depth[32]=[165], T_far=[2.18783979], S_far=[33.96969354]
+  depth[keeli-1]=[170]
+Processing Length 350
+DEBUG ORIGINAL: keeli=38, k_last=36, depth[36]=[185], T_far=[2.37652876], S_far=[34.11956557]
+  depth[keeli-1]=[190]
+Processing Length 400
+DEBUG ORIGINAL: keeli=41, k_last=39, depth[39]=[200], T_far=[2.50071855], S_far=[34.21360525]
+  depth[keeli-1]=[205]
+Processing Length 450
+DEBUG ORIGINAL: keeli=45, k_last=43, depth[43]=[220], T_far=[2.61776115], S_far=[34.30530504]
+  depth[keeli-1]=[225]
+Processing Length 500
+DEBUG ORIGINAL: keeli=48, k_last=46, depth[46]=[235], T_far=[2.72242542], S_far=[34.35639065]
+  depth[keeli-1]=[240]
+Processing Length 550
+DEBUG ORIGINAL: keeli=52, k_last=50, depth[50]=[255], T_far=[2.8205185], S_far=[34.40991099]
+  depth[keeli-1]=[260]
+Processing Length 600
+DEBUG ORIGINAL: keeli=55, k_last=53, depth[53]=[270], T_far=[2.87723331], S_far=[34.43843225]
+  depth[keeli-1]=[275]
+Processing Length 650
+DEBUG ORIGINAL: keeli=58, k_last=56, depth[56]=[285], T_far=[2.9323486], S_far=[34.46542622]
+  depth[keeli-1]=[290]
+Processing Length 700
+DEBUG ORIGINAL: keeli=61, k_last=59, depth[59]=[300], T_far=[3.00297494], S_far=[34.49005661]
+  depth[keeli-1]=[305]
+Processing Length 750
+DEBUG ORIGINAL: keeli=65, k_last=63, depth[63]=[320], T_far=[3.09937422], S_far=[34.51783312]
+  depth[keeli-1]=[325]
+Processing Length 800
+DEBUG ORIGINAL: keeli=68, k_last=66, depth[66]=[335], T_far=[3.1651946], S_far=[34.53558896]
+  depth[keeli-1]=[340]
+Processing Length 850
+DEBUG ORIGINAL: keeli=70, k_last=68, depth[68]=[345], T_far=[3.20388926], S_far=[34.54681349]
+  depth[keeli-1]=[350]
+Processing Length 900
+DEBUG ORIGINAL: keeli=73, k_last=71, depth[71]=[360], T_far=[3.26830475], S_far=[34.56252356]
+  depth[keeli-1]=[365]
+Processing Length 950
+DEBUG ORIGINAL: keeli=76, k_last=74, depth[74]=[375], T_far=[3.33739003], S_far=[34.57866197]
+  depth[keeli-1]=[380]
+Processing Length 1000
+DEBUG ORIGINAL: keeli=79, k_last=77, depth[77]=[390], T_far=[3.39594917], S_far=[34.59490368]
+  depth[keeli-1]=[395]
+Processing Length 1050
+DEBUG ORIGINAL: keeli=82, k_last=80, depth[80]=[405], T_far=[3.45187838], S_far=[34.61236737]
+  depth[keeli-1]=[410]
+Processing Length 1100
+DEBUG ORIGINAL: keeli=85, k_last=83, depth[83]=[420], T_far=[3.50711662], S_far=[34.62620293]
+  depth[keeli-1]=[425]
+Processing Length 1150
+DEBUG ORIGINAL: keeli=87, k_last=85, depth[85]=[430], T_far=[3.54694642], S_far=[34.63649389]
+  depth[keeli-1]=[435]
+Processing Length 1200
+DEBUG ORIGINAL: keeli=90, k_last=88, depth[88]=[445], T_far=[3.59765591], S_far=[34.64892106]
+  depth[keeli-1]=[450]
+Processing Length 1250
+DEBUG ORIGINAL: keeli=92, k_last=90, depth[90]=[455], T_far=[3.62181195], S_far=[34.65694988]
+  depth[keeli-1]=[460]
+Processing Length 1300
+DEBUG ORIGINAL: keeli=95, k_last=93, depth[93]=[470], T_far=[3.66290274], S_far=[34.66849521]
+  depth[keeli-1]=[475]
+Processing Length 1350
+DEBUG ORIGINAL: keeli=98, k_last=96, depth[96]=[485], T_far=[3.71652406], S_far=[34.68297203]
+  depth[keeli-1]=[490]
+Processing Length 1400
+DEBUG ORIGINAL: keeli=100, k_last=98, depth[98]=[495], T_far=[3.74795638], S_far=[34.690777]
+  depth[keeli-1]=[500]
+Processing Length 50
+DEBUG ORIGINAL: keeli=10, k_last=8, depth[8]=[45], T_far=[-0.23574018], S_far=[32.20701301]
+  depth[keeli-1]=[50]
+Processing Length 100
+DEBUG ORIGINAL: keeli=16, k_last=14, depth[14]=[75], T_far=[0.6276042], S_far=[32.94416949]
+  depth[keeli-1]=[80]
+Processing Length 150
+DEBUG ORIGINAL: keeli=21, k_last=19, depth[19]=[100], T_far=[1.30771366], S_far=[33.3341601]
+  depth[keeli-1]=[105]
+Processing Length 200
+DEBUG ORIGINAL: keeli=26, k_last=24, depth[24]=[125], T_far=[1.68088778], S_far=[33.61106463]
+  depth[keeli-1]=[130]
+Processing Length 250
+DEBUG ORIGINAL: keeli=30, k_last=28, depth[28]=[145], T_far=[1.94118086], S_far=[33.79505742]
+  depth[keeli-1]=[150]
+Processing Length 300
+DEBUG ORIGINAL: keeli=34, k_last=32, depth[32]=[165], T_far=[2.18783979], S_far=[33.96969354]
+  depth[keeli-1]=[170]
+Processing Length 350
+DEBUG ORIGINAL: keeli=38, k_last=36, depth[36]=[185], T_far=[2.37652876], S_far=[34.11956557]
+  depth[keeli-1]=[190]
+Processing Length 400
+DEBUG ORIGINAL: keeli=41, k_last=39, depth[39]=[200], T_far=[2.50071855], S_far=[34.21360525]
+  depth[keeli-1]=[205]
+Processing Length 450
+DEBUG ORIGINAL: keeli=45, k_last=43, depth[43]=[220], T_far=[2.61776115], S_far=[34.30530504]
+  depth[keeli-1]=[225]
+Processing Length 500
+DEBUG ORIGINAL: keeli=48, k_last=46, depth[46]=[235], T_far=[2.72242542], S_far=[34.35639065]
+  depth[keeli-1]=[240]
+Processing Length 550
+DEBUG ORIGINAL: keeli=52, k_last=50, depth[50]=[255], T_far=[2.8205185], S_far=[34.40991099]
+  depth[keeli-1]=[260]
+Processing Length 600
+DEBUG ORIGINAL: keeli=55, k_last=53, depth[53]=[270], T_far=[2.87723331], S_far=[34.43843225]
+  depth[keeli-1]=[275]
+Processing Length 650
+DEBUG ORIGINAL: keeli=58, k_last=56, depth[56]=[285], T_far=[2.9323486], S_far=[34.46542622]
+  depth[keeli-1]=[290]
+Processing Length 700
+DEBUG ORIGINAL: keeli=61, k_last=59, depth[59]=[300], T_far=[3.00297494], S_far=[34.49005661]
+  depth[keeli-1]=[305]
+Processing Length 750
+DEBUG ORIGINAL: keeli=65, k_last=63, depth[63]=[320], T_far=[3.09937422], S_far=[34.51783312]
+  depth[keeli-1]=[325]
+Processing Length 800
+DEBUG ORIGINAL: keeli=68, k_last=66, depth[66]=[335], T_far=[3.1651946], S_far=[34.53558896]
+  depth[keeli-1]=[340]
+Processing Length 850
+DEBUG ORIGINAL: keeli=70, k_last=68, depth[68]=[345], T_far=[3.20388926], S_far=[34.54681349]
+  depth[keeli-1]=[350]
+Processing Length 900
+DEBUG ORIGINAL: keeli=73, k_last=71, depth[71]=[360], T_far=[3.26830475], S_far=[34.56252356]
+  depth[keeli-1]=[365]
+Processing Length 950
+DEBUG ORIGINAL: keeli=76, k_last=74, depth[74]=[375], T_far=[3.33739003], S_far=[34.57866197]
+  depth[keeli-1]=[380]
+Processing Length 1000
+DEBUG ORIGINAL: keeli=79, k_last=77, depth[77]=[390], T_far=[3.39594917], S_far=[34.59490368]
+  depth[keeli-1]=[395]
+Processing Length 1050
+DEBUG ORIGINAL: keeli=82, k_last=80, depth[80]=[405], T_far=[3.45187838], S_far=[34.61236737]
+  depth[keeli-1]=[410]
+Processing Length 1100
+DEBUG ORIGINAL: keeli=85, k_last=83, depth[83]=[420], T_far=[3.50711662], S_far=[34.62620293]
+  depth[keeli-1]=[425]
+Processing Length 1150
+DEBUG ORIGINAL: keeli=87, k_last=85, depth[85]=[430], T_far=[3.54694642], S_far=[34.63649389]
+  depth[keeli-1]=[435]
+Processing Length 1200
+DEBUG ORIGINAL: keeli=90, k_last=88, depth[88]=[445], T_far=[3.59765591], S_far=[34.64892106]
+  depth[keeli-1]=[450]
+Processing Length 1250
+DEBUG ORIGINAL: keeli=92, k_last=90, depth[90]=[455], T_far=[3.62181195], S_far=[34.65694988]
+  depth[keeli-1]=[460]
+Processing Length 1300
+DEBUG ORIGINAL: keeli=95, k_last=93, depth[93]=[470], T_far=[3.66290274], S_far=[34.66849521]
+  depth[keeli-1]=[475]
+Processing Length 1350
+DEBUG ORIGINAL: keeli=98, k_last=96, depth[96]=[485], T_far=[3.71652406], S_far=[34.68297203]
+  depth[keeli-1]=[490]
+Processing Length 1400
+DEBUG ORIGINAL: keeli=100, k_last=98, depth[98]=[495], T_far=[3.74795638], S_far=[34.690777]
+  depth[keeli-1]=[500]
+Processing Length 50
+DEBUG ORIGINAL: keeli=10, k_last=8, depth[8]=[45], T_far=[-0.23574018], S_far=[32.20701301]
+  depth[keeli-1]=[50]
+Processing Length 100
+DEBUG ORIGINAL: keeli=16, k_last=14, depth[14]=[75], T_far=[0.6276042], S_far=[32.94416949]
+  depth[keeli-1]=[80]
+Processing Length 150
+DEBUG ORIGINAL: keeli=21, k_last=19, depth[19]=[100], T_far=[1.30771366], S_far=[33.3341601]
+  depth[keeli-1]=[105]
+Processing Length 200
+DEBUG ORIGINAL: keeli=26, k_last=24, depth[24]=[125], T_far=[1.68088778], S_far=[33.61106463]
+  depth[keeli-1]=[130]
+Processing Length 250
+DEBUG ORIGINAL: keeli=30, k_last=28, depth[28]=[145], T_far=[1.94118086], S_far=[33.79505742]
+  depth[keeli-1]=[150]
+Processing Length 300
+DEBUG ORIGINAL: keeli=34, k_last=32, depth[32]=[165], T_far=[2.18783979], S_far=[33.96969354]
+  depth[keeli-1]=[170]
+Processing Length 350
+DEBUG ORIGINAL: keeli=38, k_last=36, depth[36]=[185], T_far=[2.37652876], S_far=[34.11956557]
+  depth[keeli-1]=[190]
+Processing Length 400
+DEBUG ORIGINAL: keeli=41, k_last=39, depth[39]=[200], T_far=[2.50071855], S_far=[34.21360525]
+  depth[keeli-1]=[205]
+Processing Length 450
+DEBUG ORIGINAL: keeli=45, k_last=43, depth[43]=[220], T_far=[2.61776115], S_far=[34.30530504]
+  depth[keeli-1]=[225]
+Processing Length 500
+DEBUG ORIGINAL: keeli=48, k_last=46, depth[46]=[235], T_far=[2.72242542], S_far=[34.35639065]
+  depth[keeli-1]=[240]
+Processing Length 550
+DEBUG ORIGINAL: keeli=52, k_last=50, depth[50]=[255], T_far=[2.8205185], S_far=[34.40991099]
+  depth[keeli-1]=[260]
+Processing Length 600
+DEBUG ORIGINAL: keeli=55, k_last=53, depth[53]=[270], T_far=[2.87723331], S_far=[34.43843225]
+  depth[keeli-1]=[275]
+Processing Length 650
+DEBUG ORIGINAL: keeli=58, k_last=56, depth[56]=[285], T_far=[2.9323486], S_far=[34.46542622]
+  depth[keeli-1]=[290]
+Processing Length 700
+DEBUG ORIGINAL: keeli=61, k_last=59, depth[59]=[300], T_far=[3.00297494], S_far=[34.49005661]
+  depth[keeli-1]=[305]
+Processing Length 750
+DEBUG ORIGINAL: keeli=65, k_last=63, depth[63]=[320], T_far=[3.09937422], S_far=[34.51783312]
+  depth[keeli-1]=[325]
+Processing Length 800
+DEBUG ORIGINAL: keeli=68, k_last=66, depth[66]=[335], T_far=[3.1651946], S_far=[34.53558896]
+  depth[keeli-1]=[340]
+Processing Length 850
+DEBUG ORIGINAL: keeli=70, k_last=68, depth[68]=[345], T_far=[3.20388926], S_far=[34.54681349]
+  depth[keeli-1]=[350]
+Processing Length 900
+DEBUG ORIGINAL: keeli=73, k_last=71, depth[71]=[360], T_far=[3.26830475], S_far=[34.56252356]
+  depth[keeli-1]=[365]
+Processing Length 950
+DEBUG ORIGINAL: keeli=76, k_last=74, depth[74]=[375], T_far=[3.33739003], S_far=[34.57866197]
+  depth[keeli-1]=[380]
+Processing Length 1000
+DEBUG ORIGINAL: keeli=79, k_last=77, depth[77]=[390], T_far=[3.39594917], S_far=[34.59490368]
+  depth[keeli-1]=[395]
+Processing Length 1050
+DEBUG ORIGINAL: keeli=82, k_last=80, depth[80]=[405], T_far=[3.45187838], S_far=[34.61236737]
+  depth[keeli-1]=[410]
+Processing Length 1100
+DEBUG ORIGINAL: keeli=85, k_last=83, depth[83]=[420], T_far=[3.50711662], S_far=[34.62620293]
+  depth[keeli-1]=[425]
+Processing Length 1150
+DEBUG ORIGINAL: keeli=87, k_last=85, depth[85]=[430], T_far=[3.54694642], S_far=[34.63649389]
+  depth[keeli-1]=[435]
+Processing Length 1200
+DEBUG ORIGINAL: keeli=90, k_last=88, depth[88]=[445], T_far=[3.59765591], S_far=[34.64892106]
+  depth[keeli-1]=[450]
+Processing Length 1250
+DEBUG ORIGINAL: keeli=92, k_last=90, depth[90]=[455], T_far=[3.62181195], S_far=[34.65694988]
+  depth[keeli-1]=[460]
+Processing Length 1300
+DEBUG ORIGINAL: keeli=95, k_last=93, depth[93]=[470], T_far=[3.66290274], S_far=[34.66849521]
+  depth[keeli-1]=[475]
+Processing Length 1350
+DEBUG ORIGINAL: keeli=98, k_last=96, depth[96]=[485], T_far=[3.71652406], S_far=[34.68297203]
+  depth[keeli-1]=[490]
+Processing Length 1400
+DEBUG ORIGINAL: keeli=100, k_last=98, depth[98]=[495], T_far=[3.74795638], S_far=[34.690777]
+  depth[keeli-1]=[500]
+Processing Length 50
+DEBUG ORIGINAL: keeli=10, k_last=8, depth[8]=[45], T_far=[-0.23574018], S_far=[32.20701301]
+  depth[keeli-1]=[50]
+Processing Length 100
+DEBUG ORIGINAL: keeli=16, k_last=14, depth[14]=[75], T_far=[0.6276042], S_far=[32.94416949]
+  depth[keeli-1]=[80]
+Processing Length 150
+DEBUG ORIGINAL: keeli=21, k_last=19, depth[19]=[100], T_far=[1.30771366], S_far=[33.3341601]
+  depth[keeli-1]=[105]
+Processing Length 200
+DEBUG ORIGINAL: keeli=26, k_last=24, depth[24]=[125], T_far=[1.68088778], S_far=[33.61106463]
+  depth[keeli-1]=[130]
+Processing Length 250
+DEBUG ORIGINAL: keeli=30, k_last=28, depth[28]=[145], T_far=[1.94118086], S_far=[33.79505742]
+  depth[keeli-1]=[150]
+Processing Length 300
+DEBUG ORIGINAL: keeli=34, k_last=32, depth[32]=[165], T_far=[2.18783979], S_far=[33.96969354]
+  depth[keeli-1]=[170]
+Processing Length 350
+DEBUG ORIGINAL: keeli=38, k_last=36, depth[36]=[185], T_far=[2.37652876], S_far=[34.11956557]
+  depth[keeli-1]=[190]
+Processing Length 400
+DEBUG ORIGINAL: keeli=41, k_last=39, depth[39]=[200], T_far=[2.50071855], S_far=[34.21360525]
+  depth[keeli-1]=[205]
+Processing Length 450
+DEBUG ORIGINAL: keeli=45, k_last=43, depth[43]=[220], T_far=[2.61776115], S_far=[34.30530504]
+  depth[keeli-1]=[225]
+Processing Length 500
+DEBUG ORIGINAL: keeli=48, k_last=46, depth[46]=[235], T_far=[2.72242542], S_far=[34.35639065]
+  depth[keeli-1]=[240]
+Processing Length 550
+DEBUG ORIGINAL: keeli=52, k_last=50, depth[50]=[255], T_far=[2.8205185], S_far=[34.40991099]
+  depth[keeli-1]=[260]
+Processing Length 600
+DEBUG ORIGINAL: keeli=55, k_last=53, depth[53]=[270], T_far=[2.87723331], S_far=[34.43843225]
+  depth[keeli-1]=[275]
+Processing Length 650
+DEBUG ORIGINAL: keeli=58, k_last=56, depth[56]=[285], T_far=[2.9323486], S_far=[34.46542622]
+  depth[keeli-1]=[290]
+Processing Length 700
+DEBUG ORIGINAL: keeli=61, k_last=59, depth[59]=[300], T_far=[3.00297494], S_far=[34.49005661]
+  depth[keeli-1]=[305]
+Processing Length 750
+DEBUG ORIGINAL: keeli=65, k_last=63, depth[63]=[320], T_far=[3.09937422], S_far=[34.51783312]
+  depth[keeli-1]=[325]
+Processing Length 800
+DEBUG ORIGINAL: keeli=68, k_last=66, depth[66]=[335], T_far=[3.1651946], S_far=[34.53558896]
+  depth[keeli-1]=[340]
+Processing Length 850
+DEBUG ORIGINAL: keeli=70, k_last=68, depth[68]=[345], T_far=[3.20388926], S_far=[34.54681349]
+  depth[keeli-1]=[350]
+Processing Length 900
+DEBUG ORIGINAL: keeli=73, k_last=71, depth[71]=[360], T_far=[3.26830475], S_far=[34.56252356]
+  depth[keeli-1]=[365]
+Processing Length 950
+DEBUG ORIGINAL: keeli=76, k_last=74, depth[74]=[375], T_far=[3.33739003], S_far=[34.57866197]
+  depth[keeli-1]=[380]
+Processing Length 1000
+DEBUG ORIGINAL: keeli=79, k_last=77, depth[77]=[390], T_far=[3.39594917], S_far=[34.59490368]
+  depth[keeli-1]=[395]
+Processing Length 1050
+DEBUG ORIGINAL: keeli=82, k_last=80, depth[80]=[405], T_far=[3.45187838], S_far=[34.61236737]
+  depth[keeli-1]=[410]
+Processing Length 1100
+DEBUG ORIGINAL: keeli=85, k_last=83, depth[83]=[420], T_far=[3.50711662], S_far=[34.62620293]
+  depth[keeli-1]=[425]
+Processing Length 1150
+DEBUG ORIGINAL: keeli=87, k_last=85, depth[85]=[430], T_far=[3.54694642], S_far=[34.63649389]
+  depth[keeli-1]=[435]
+Processing Length 1200
+DEBUG ORIGINAL: keeli=90, k_last=88, depth[88]=[445], T_far=[3.59765591], S_far=[34.64892106]
+  depth[keeli-1]=[450]
+Processing Length 1250
+DEBUG ORIGINAL: keeli=92, k_last=90, depth[90]=[455], T_far=[3.62181195], S_far=[34.65694988]
+  depth[keeli-1]=[460]
+Processing Length 1300
+DEBUG ORIGINAL: keeli=95, k_last=93, depth[93]=[470], T_far=[3.66290274], S_far=[34.66849521]
+  depth[keeli-1]=[475]
+Processing Length 1350
+DEBUG ORIGINAL: keeli=98, k_last=96, depth[96]=[485], T_far=[3.71652406], S_far=[34.68297203]
+  depth[keeli-1]=[490]
+Processing Length 1400
+DEBUG ORIGINAL: keeli=100, k_last=98, depth[98]=[495], T_far=[3.74795638], S_far=[34.690777]
+  depth[keeli-1]=[500]

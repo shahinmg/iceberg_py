@@ -21,7 +21,7 @@ import types
 import os
 import string
 
-berg_model_path_1 = '../data/iceberg_classes_output/helheim/avg/'
+berg_model_path_1 = '../data/iceberg_classes_output_bug_fix/helheim/avg_013/'
 
 iceberg_geom_path = '../data/iceberg_geoms/helheim/'
 
@@ -235,7 +235,7 @@ def get_xr_das(model_list):
         
         ax[0].plot(keel_melt_rates, keel_depths,  c='black', lw=5, zorder=1)
         ax[0].plot(keel_melt_rates, keel_depths,  c='maroon', lw=3, zorder=1)
-        # avg_melt_rate = keel_melt_rates[4:].mean()
+        avg_melt_rate = keel_melt_rates[4:].mean()
         
         
         
