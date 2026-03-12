@@ -8,7 +8,7 @@ Within `src/iceberg_model/` there is `melt_functions.py`. This file contains all
 
 ## Recreate Figures 
 
-In the `figure_pys` dir there are three scripts to recreate figures 4-6. These figures are "data figures" and not schematics or site maps. Please download the accopanying Zenodo archive (link coming soon) to download the data for this repo to recreate the figures.
+In the `figure_pys` dir there are three scripts to recreate figures 4-6. These figures are "data figures" and not schematics or site maps. Please download the accompanying [Zenodo archive](https://zenodo.org/records/18987757) to download the data for this repo to recreate the figures.
 
 ## Tables
 
