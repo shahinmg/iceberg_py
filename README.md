@@ -10,6 +10,10 @@ Within `src/iceberg_model/` there is `melt_functions.py`. This file contains all
 
 In the `figure_pys` dir there are three scripts to recreate figures 4-6. These figures are "data figures" and not schematics or site maps. Please download the accopanying Zenodo archive (link coming soon) to download the data for this repo to recreate the figures.
 
+## Tables
+
+Notebooks to recreate tables are in the `notebooks` directory. For the iceberg volume proportions, see the `aw_vs_total_vol_table_gen.ipynb` in `notebooks/volume_table`. For the Qib tables (avg, min, and max) see the notebooks in `notebooks\qib_tables`.
+
 ## Image segmentation example
 
 In the `notebooks` directory, there is a `.ipynb` file that contains an example of how to use [SAM](https://github.com/facebookresearch/segment-anything) (version 1) to segment icebergs. 
