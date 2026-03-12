@@ -21,7 +21,7 @@ import types
 import os
 import string
 
-berg_model_path_1 = '../data/iceberg_classes_output_melt_fix/helheim/max/'
+berg_model_path_1 = '../data/iceberg_classes_output/helheim/max/'
 
 iceberg_geom_path = '../data/iceberg_geoms/helheim/'
 

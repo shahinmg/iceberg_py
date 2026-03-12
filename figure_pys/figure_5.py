@@ -21,7 +21,7 @@ import types
 import os
 import string
 
-berg_model_path_1 = '../data/iceberg_classes_output_melt_fix/helheim/avg/'
+berg_model_path_1 = '../data/iceberg_classes_output/helheim/avg/'
 
 iceberg_geom_path = '../data/iceberg_geoms/helheim/'
 
@@ -290,8 +290,8 @@ def get_xr_das(model_list):
         if not os.path.exists(op):
             os.makedirs(op)
         # plt.subplots_adjust(right=0.2)
-        fig.savefig(f'{op}Qib_depth_updated_3_panel.pdf', dpi=300, bbox_inches='tight')
-        fig.savefig(f'{op}Qib_depth_updated_3_panel.pdf', dpi=300, pad_inches=0.03)
+        # fig.savefig(f'{op}figure_5.pdf', dpi=300, bbox_inches='tight')
+        # fig.savefig(f'{op}figure_5.pdf', dpi=300, pad_inches=0.03)
 
     return fig, ax
 
