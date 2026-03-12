@@ -17,6 +17,7 @@ dev/
 *.pth
 notebooks/stac_items/*
 !notebooks/stac_items/.gitignore
+figure_pys/old_figs/
 
 data/*
 !data/.gitignore
